@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: qmatrix
+data:
+  REACT_APP_API_URL: "http://novel-to-anime.qmatrix.local/api"
+  NODE_ENV: "production"
