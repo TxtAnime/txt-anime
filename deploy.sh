@@ -36,14 +36,14 @@ echo -e "${YELLOW}🔨 Building Docker images...${NC}"
 # Build frontend
 echo "Building frontend..."
 cd novel-to-anime-frontend
-docker build -t ${REGISTRY}/${NAMESPACE}/novel-to-anime-frontend:latest .
+docker build --platform linux/amd64 --no-cache -t ${REGISTRY}/${NAMESPACE}/novel-to-anime-frontend:latest .
 docker push ${REGISTRY}/${NAMESPACE}/novel-to-anime-frontend:latest
 cd ..
 
 # Build mock server
 echo "Building mock server..."
 cd mock-server
-docker build -t ${REGISTRY}/${NAMESPACE}/mock-server:latest .
+docker build --platform linux/amd64 --no-cache -t ${REGISTRY}/${NAMESPACE}/mock-server:latest .
 docker push ${REGISTRY}/${NAMESPACE}/mock-server:latest
 cd ..
 
@@ -64,6 +64,11 @@ kubectl apply -f k8s/frontend-deployment.yaml
 
 # Apply ingress
 kubectl apply -f k8s/ingress.yaml
+
+# Force restart deployments to pull new images
+echo "Restarting deployments to pull new images..."
+kubectl rollout restart deployment/mock-server -n ${NAMESPACE}
+kubectl rollout restart deployment/novel-to-anime-frontend -n ${NAMESPACE}
 
 echo -e "${GREEN}✅ Kubernetes resources deployed${NC}"
 
