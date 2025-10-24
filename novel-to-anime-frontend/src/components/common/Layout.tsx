@@ -10,41 +10,38 @@ export const Layout = ({ children }: LayoutProps) => {
   const isHomePage = location.pathname === '/';
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-                <h1 className="text-3xl font-bold text-gray-900">Novel to Anime</h1>
-              </Link>
-              <p className="mt-2 text-gray-600">Transform your stories into animated experiences</p>
-            </div>
+    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+      <header style={{ backgroundColor: 'white', borderBottom: '1px solid #e5e7eb', position: 'sticky', top: 0, zIndex: 50 }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '64px' }}>
+            <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
+              <div style={{ width: '32px', height: '32px', backgroundColor: '#2563eb', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ color: 'white', fontSize: '16px' }}>🎬</span>
+              </div>
+              <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827' }}>Novel to Anime</span>
+            </Link>
             
             {!isHomePage && (
-              <nav className="flex items-center space-x-4">
-                <Link
-                  to="/"
-                  className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                >
-                  Home
-                </Link>
-              </nav>
+              <Link
+                to="/"
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', color: '#6b7280', textDecoration: 'none', borderRadius: '8px' }}
+              >
+                <span style={{ fontSize: '16px' }}>🏠</span>
+                <span>Home</span>
+              </Link>
             )}
           </div>
         </div>
       </header>
       
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          {children}
-        </div>
+      <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '32px 16px' }}>
+        {children}
       </main>
       
-      <footer className="bg-white border-t border-gray-200 mt-12">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <div className="text-center text-sm text-gray-500">
-            <p>Novel to Anime Converter - Transform your stories into visual experiences</p>
+      <footer style={{ backgroundColor: 'white', borderTop: '1px solid #e5e7eb', marginTop: '64px' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '16px' }}>
+          <div style={{ textAlign: 'center', fontSize: '14px', color: '#6b7280' }}>
+            © 2024 Novel to Anime • Powered by AI
           </div>
         </div>
       </footer>

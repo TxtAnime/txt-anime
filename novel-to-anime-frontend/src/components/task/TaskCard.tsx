@@ -8,74 +8,83 @@ interface TaskCardProps {
 }
 
 export const TaskCard = ({ task, onSelect, isSelected = false }: TaskCardProps) => {
-  const getStatusColor = (status: string) => {
+  const getStatusConfig = (status: string) => {
     switch (status) {
       case 'doing':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return {
+          badge: 'status-doing',
+          icon: (
+            <svg className="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          ),
+          gradient: 'from-amber-400 to-amber-500'
+        };
       case 'done':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return {
+          badge: 'status-done',
+          icon: (
+            <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
+          ),
+          gradient: 'from-emerald-400 to-emerald-500'
+        };
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return {
+          badge: 'status-badge bg-gray-100 text-gray-600 border-gray-200',
+          icon: null,
+          gradient: 'from-gray-400 to-gray-500'
+        };
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'doing':
-        return (
-          <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-        );
-      case 'done':
-        return (
-          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-          </svg>
-        );
-      default:
-        return null;
-    }
-  };
+  const statusConfig = getStatusConfig(task.status);
 
   return (
     <div
       onClick={() => onSelect(task)}
-      className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md ${
+      className={`bg-white rounded-lg p-3 cursor-pointer border transition-colors ${
         isSelected 
-          ? 'border-blue-500 bg-blue-50 shadow-md' 
-          : 'border-gray-200 bg-white hover:border-gray-300'
+          ? 'border-blue-500 bg-blue-50' 
+          : 'border-gray-200 hover:border-gray-300'
       }`}
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center space-x-2">
-          <span className="text-sm font-mono text-gray-600">
+          <span className="text-sm font-mono text-gray-700">
             {task.id.substring(0, 8)}...
           </span>
-          {isSelected && (
-            <svg className="h-4 w-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
+          {task.createdAt && (
+            <span className="text-xs text-gray-500">
+              {formatTaskTime(task.createdAt)}
+            </span>
           )}
         </div>
-        <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(task.status)}`}>
-          {getStatusIcon(task.status)}
-          <span className="ml-1 capitalize">{task.status}</span>
+        
+        <div className={statusConfig.badge}>
+          {statusConfig.icon}
+          <span className="ml-1 capitalize text-xs">{task.status}</span>
         </div>
       </div>
       
-      {task.createdAt && (
-        <p className="text-xs text-gray-500">
-          Created {formatTaskTime(task.createdAt)}
-        </p>
-      )}
-      
       {task.status === 'done' && (
-        <div className="mt-2">
-          <button className="text-xs text-blue-600 hover:text-blue-800 font-medium">
-            View Anime →
-          </button>
+        <div className="mt-2 pt-2 border-t border-gray-100">
+          <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+            Ready to view
+          </span>
+        </div>
+      )}
+
+      {task.status === 'doing' && (
+        <div className="mt-2 pt-2 border-t border-gray-100">
+          <div className="flex items-center space-x-2">
+            <div className="flex-1 bg-gray-200 rounded-full h-1">
+              <div className="h-full bg-orange-500 rounded-full animate-pulse w-3/5"></div>
+            </div>
+            <span className="text-xs text-orange-600">Processing...</span>
+          </div>
         </div>
       )}
     </div>

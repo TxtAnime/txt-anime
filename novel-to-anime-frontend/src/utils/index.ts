@@ -56,12 +56,12 @@ export const validateNovelText = (text: string): { isValid: boolean; error?: str
     return { isValid: false, error: 'Novel text cannot be empty' };
   }
   
-  if (text.trim().length < 10) {
-    return { isValid: false, error: 'Novel text is too short (minimum 10 characters)' };
+  if (text.trim().length < 100) {
+    return { isValid: false, error: 'Novel text is too short (minimum 100 characters)' };
   }
   
-  if (text.length > 100000) {
-    return { isValid: false, error: 'Novel text is too long (maximum 100,000 characters)' };
+  if (text.length > 10000) {
+    return { isValid: false, error: 'Novel text is too long (maximum 10,000 characters)' };
   }
   
   return { isValid: true };

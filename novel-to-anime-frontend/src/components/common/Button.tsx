@@ -1,57 +1,121 @@
-import type { ReactNode } from 'react';
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 
-interface ButtonProps {
-  children: ReactNode;
-  onClick?: () => void;
-  type?: 'button' | 'submit' | 'reset';
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
   size?: 'sm' | 'md' | 'lg';
-  disabled?: boolean;
   loading?: boolean;
-  className?: string;
+  children: ReactNode;
 }
 
-export const Button = ({
-  children,
-  onClick,
-  type = 'button',
-  variant = 'primary',
-  size = 'md',
-  disabled = false,
-  loading = false,
-  className = '',
-}: ButtonProps) => {
-  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200';
-  
-  const variantClasses = {
-    primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 disabled:bg-gray-300 disabled:text-gray-500',
-    secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500 disabled:bg-gray-100 disabled:text-gray-400',
-    danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 disabled:bg-gray-300 disabled:text-gray-500',
-    ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-500 disabled:text-gray-400',
-  };
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ variant = 'primary', size = 'md', loading = false, disabled, children, style, ...props }, ref) => {
+    const getVariantStyles = () => {
+      switch (variant) {
+        case 'primary':
+          return {
+            backgroundColor: '#3b82f6',
+            color: 'white',
+            border: 'none',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+          };
+        case 'secondary':
+          return {
+            backgroundColor: 'white',
+            color: '#374151',
+            border: '1px solid #d1d5db'
+          };
+        case 'ghost':
+          return {
+            backgroundColor: 'transparent',
+            color: '#374151',
+            border: 'none'
+          };
+        case 'danger':
+          return {
+            backgroundColor: '#ef4444',
+            color: 'white',
+            border: 'none'
+          };
+        default:
+          return {
+            backgroundColor: '#3b82f6',
+            color: 'white',
+            border: 'none'
+          };
+      }
+    };
 
-  const sizeClasses = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-sm',
-    lg: 'px-6 py-3 text-base',
-  };
+    const getSizeStyles = () => {
+      switch (size) {
+        case 'sm':
+          return { padding: '8px 12px', fontSize: '14px' };
+        case 'md':
+          return { padding: '12px 24px', fontSize: '16px' };
+        case 'lg':
+          return { padding: '16px 32px', fontSize: '18px' };
+        default:
+          return { padding: '12px 24px', fontSize: '16px' };
+      }
+    };
 
-  const isDisabled = disabled || loading;
+    const isDisabled = disabled || loading;
+    const variantStyles = getVariantStyles();
+    const sizeStyles = getSizeStyles();
 
-  return (
-    <button
-      type={type}
-      onClick={onClick}
-      disabled={isDisabled}
-      className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'} ${className}`}
-    >
-      {loading && (
-        <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-      )}
-      {children}
-    </button>
-  );
-};
+    const buttonStyle = {
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontWeight: '500',
+      borderRadius: '8px',
+      cursor: isDisabled ? 'not-allowed' : 'pointer',
+      opacity: isDisabled ? 0.6 : 1,
+      transition: 'all 0.2s ease',
+      outline: 'none',
+      fontFamily: 'inherit',
+      ...variantStyles,
+      ...sizeStyles,
+      ...style
+    };
+
+    return (
+      <button
+        ref={ref}
+        disabled={isDisabled}
+        style={buttonStyle}
+        {...props}
+      >
+        {loading && (
+          <svg 
+            style={{ 
+              animation: 'spin 1s linear infinite', 
+              marginLeft: '-4px', 
+              marginRight: '8px', 
+              width: '16px', 
+              height: '16px' 
+            }} 
+            fill="none" 
+            viewBox="0 0 24 24"
+          >
+            <circle 
+              style={{ opacity: 0.25 }} 
+              cx="12" 
+              cy="12" 
+              r="10" 
+              stroke="currentColor" 
+              strokeWidth="4"
+            />
+            <path 
+              style={{ opacity: 0.75 }} 
+              fill="currentColor" 
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            />
+          </svg>
+        )}
+        {children}
+      </button>
+    );
+  }
+);
+
+Button.displayName = 'Button';
