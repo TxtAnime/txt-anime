@@ -18,6 +18,46 @@
 - [x] 步骤一: 剧本改编 (Script Adaptation) ✅
 - [x] 步骤二: 角色设计 (Character Design) ✅
 - [x] 步骤三: 分镜生成 (Storyboard Generation) ✅
+
+## 快速部署
+
+### 本地部署
+
+使用一键部署脚本启动前端和后端服务：
+
+```bash
+# 本地部署 (默认)
+./deploy.sh
+
+# Kubernetes部署
+./deploy.sh k8s
+```
+
+部署完成后访问：
+- 前端界面: http://localhost:3000
+- 后端API: http://localhost:8080
+- API文档: http://localhost:8080/swagger/index.html
+- 健康检查: http://localhost:8080/health
+
+### 服务管理
+
+```bash
+# 停止所有服务
+./cleanup.sh
+
+# 运行完整验证测试
+node test-full-deployment.js
+
+# 运行基础集成测试
+node test-integration.js
+```
+
+### 构建说明
+
+- **后端服务**: `go build -o novel2comicd ./cmd/novel2comicd`
+- **启动命令**: `./novel2comicd -config config.json`
+- **前端服务**: 基于 React + Vite + TypeScript
+- **数据库**: MongoDB (需要预先启动)
 - [x] 步骤四: 音频合成 (Audio Synthesis) ✅
 - [x] 步骤五: 最终合成 (Final Assembly) ✅
 

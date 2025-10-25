@@ -20,7 +20,10 @@ export const useTasks = () => {
         createdAt: new Date(), // API doesn't provide creation time, using current time
       }));
 
-      dispatch({ type: 'SET_TASKS', payload: tasks });
+      // Reverse the array to show the last task (newest) first
+      const sortedTasks = tasks.reverse();
+
+      dispatch({ type: 'SET_TASKS', payload: sortedTasks });
       
       // Save to localStorage
       storage.setItem(STORAGE_KEYS.TASKS, tasks.map(t => t.id));

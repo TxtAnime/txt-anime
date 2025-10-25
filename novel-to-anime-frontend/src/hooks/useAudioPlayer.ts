@@ -10,9 +10,10 @@ export const useAudioPlayer = () => {
   });
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const autoPlayQueue = useRef<string[]>([]);
+  const autoPlayQueue = useRef<Array<{ url: string; id: string }>>([]);
   const currentAutoPlayIndex = useRef<number>(-1);
   const userInteracted = useRef<boolean>(false);
+  const isAutoPlaying = useRef<boolean>(false);
 
   // Track user interaction
   useEffect(() => {
@@ -269,31 +270,58 @@ export const useAudioPlayer = () => {
 
   // Play next dialogue in auto-play queue
   const playNextInQueue = useCallback(() => {
-    if (autoPlayQueue.current.length > 0 && currentAutoPlayIndex.current < autoPlayQueue.current.length - 1) {
+    if (isAutoPlaying.current && autoPlayQueue.current.length > 0 && currentAutoPlayIndex.current < autoPlayQueue.current.length - 1) {
       currentAutoPlayIndex.current += 1;
-      // This would need to be implemented with scene data access
-      // For now, we'll just clear the queue
-      if (currentAutoPlayIndex.current >= autoPlayQueue.current.length - 1) {
-        autoPlayQueue.current = [];
-        currentAutoPlayIndex.current = -1;
-      }
+      const nextItem = autoPlayQueue.current[currentAutoPlayIndex.current];
+      console.log('Auto-playing next item in queue:', nextItem);
+      
+      // Add a small delay before playing next item
+      setTimeout(() => {
+        playAudio(nextItem.url, nextItem.id);
+      }, 800); // 800ms delay between audio clips
+    } else {
+      // End of queue or auto-play disabled
+      console.log('Auto-play queue finished or disabled');
+      isAutoPlaying.current = false;
+      autoPlayQueue.current = [];
+      currentAutoPlayIndex.current = -1;
     }
-  }, []);
+  }, [playAudio]);
 
   // Start auto-play for a scene
-  const startAutoPlay = useCallback((sceneDialogues: Array<{ voiceURL: string }>, sceneIndex: number) => {
+  const startAutoPlay = useCallback((sceneDialogues: Array<{ voiceURL: string }>, sceneIndex: number, includeNarration?: { url: string }) => {
     // Stop current playback
     stopAudio();
     
     // Set up auto-play queue
-    autoPlayQueue.current = sceneDialogues.map((_, index) => generateDialogueId(sceneIndex, index));
-    currentAutoPlayIndex.current = -1;
+    const queue: Array<{ url: string; id: string }> = [];
     
-    // Start with first dialogue
-    if (sceneDialogues.length > 0) {
+    // Add narration first if available
+    if (includeNarration) {
+      queue.push({
+        url: includeNarration.url,
+        id: `narration-${sceneIndex}`
+      });
+    }
+    
+    // Add all dialogues
+    sceneDialogues.forEach((dialogue, index) => {
+      queue.push({
+        url: dialogue.voiceURL,
+        id: generateDialogueId(sceneIndex, index)
+      });
+    });
+    
+    autoPlayQueue.current = queue;
+    currentAutoPlayIndex.current = -1;
+    isAutoPlaying.current = true;
+    
+    // Start with first item
+    if (queue.length > 0) {
       currentAutoPlayIndex.current = 0;
-      const firstDialogueId = autoPlayQueue.current[0];
-      playAudio(sceneDialogues[0].voiceURL, firstDialogueId);
+      const firstItem = queue[0];
+      console.log('Starting auto-play with:', firstItem);
+      playAudio(firstItem.url, firstItem.id);
     }
   }, [stopAudio, playAudio]);
 
@@ -306,6 +334,7 @@ export const useAudioPlayer = () => {
     const dialogueId = generateDialogueId(sceneIndex, dialogueIndex);
     
     // Clear auto-play queue when manually selecting dialogue
+    isAutoPlaying.current = false;
     autoPlayQueue.current = [];
     currentAutoPlayIndex.current = -1;
     
@@ -324,7 +353,8 @@ export const useAudioPlayer = () => {
   const playNarration = useCallback(async (audioUrl: string, sceneIndex: number) => {
     const narrationId = `narration-${sceneIndex}`;
     
-    // Clear auto-play queue
+    // Clear auto-play queue when manually playing narration
+    isAutoPlaying.current = false;
     autoPlayQueue.current = [];
     currentAutoPlayIndex.current = -1;
     
