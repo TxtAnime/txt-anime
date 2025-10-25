@@ -1,6 +1,7 @@
 // Core data types based on API specification
 export interface Task {
   id: string;
+  name: string;
   status: 'doing' | 'done';
   createdAt?: Date;
 }
@@ -8,11 +9,11 @@ export interface Task {
 export interface Dialogue {
   character: string;
   line: string;
-  voice: string; // base64 encoded audio
+  voiceURL: string; // URL to audio file
 }
 
 export interface AnimeScene {
-  image: string; // base64 encoded PNG
+  imageURL: string; // URL to image file
   narration: string;
   dialogues: Dialogue[];
 }
@@ -23,6 +24,7 @@ export interface AnimeArtifacts {
 
 // API request/response types
 export interface CreateTaskRequest {
+  name: string;
   novel: string;
 }
 
@@ -32,6 +34,7 @@ export interface CreateTaskResponse {
 
 export interface GetTaskResponse {
   id: string;
+  name: string;
   status: 'doing' | 'done';
 }
 

@@ -23,9 +23,9 @@ export const AnimeScene = ({
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
       {/* Scene Image */}
       <div className="relative">
-        {scene.image ? (
+        {scene.imageURL ? (
           <img
-            src={`data:image/svg+xml;base64,${scene.image}`}
+            src={scene.imageURL}
             alt={`Scene ${sceneIndex + 1}`}
             className="w-full h-64 sm:h-80 md:h-96 object-cover"
             onError={(e) => {

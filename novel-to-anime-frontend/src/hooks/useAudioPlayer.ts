@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { createAudioUrl, cleanupAudioUrl, generateDialogueId } from '../utils';
+import { generateDialogueId } from '../utils';
 import type { AudioPlayerState } from '../types';
 
 export const useAudioPlayer = () => {
@@ -10,7 +10,8 @@ export const useAudioPlayer = () => {
   });
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const currentAudioUrl = useRef<string | null>(null);
+  const autoPlayQueue = useRef<string[]>([]);
+  const currentAutoPlayIndex = useRef<number>(-1);
 
   // Clean up audio resources
   const cleanup = useCallback(() => {
@@ -18,15 +19,11 @@ export const useAudioPlayer = () => {
       audioRef.current.pause();
       audioRef.current = null;
     }
-    if (currentAudioUrl.current) {
-      cleanupAudioUrl(currentAudioUrl.current);
-      currentAudioUrl.current = null;
-    }
   }, []);
 
-  // Play audio from base64 data
+  // Play audio from URL
   const playAudio = useCallback(async (
-    base64Audio: string,
+    audioUrl: string,
     dialogueId: string
   ) => {
     try {
@@ -36,9 +33,6 @@ export const useAudioPlayer = () => {
       }
 
       // Create new audio element
-      const audioUrl = createAudioUrl(base64Audio);
-      currentAudioUrl.current = audioUrl;
-      
       const audio = new Audio(audioUrl);
       audioRef.current = audio;
       
@@ -61,6 +55,9 @@ export const useAudioPlayer = () => {
           isPlaying: false,
         }));
         cleanup();
+        
+        // Auto-play next dialogue if in auto-play mode
+        playNextInQueue();
       });
 
       audio.addEventListener('error', (error) => {
@@ -135,13 +132,47 @@ export const useAudioPlayer = () => {
     }
   }, []);
 
+  // Play next dialogue in auto-play queue
+  const playNextInQueue = useCallback(() => {
+    if (autoPlayQueue.current.length > 0 && currentAutoPlayIndex.current < autoPlayQueue.current.length - 1) {
+      currentAutoPlayIndex.current += 1;
+      // This would need to be implemented with scene data access
+      // For now, we'll just clear the queue
+      if (currentAutoPlayIndex.current >= autoPlayQueue.current.length - 1) {
+        autoPlayQueue.current = [];
+        currentAutoPlayIndex.current = -1;
+      }
+    }
+  }, []);
+
+  // Start auto-play for a scene
+  const startAutoPlay = useCallback((sceneDialogues: Array<{ voiceURL: string }>, sceneIndex: number) => {
+    // Stop current playback
+    stopAudio();
+    
+    // Set up auto-play queue
+    autoPlayQueue.current = sceneDialogues.map((_, index) => generateDialogueId(sceneIndex, index));
+    currentAutoPlayIndex.current = -1;
+    
+    // Start with first dialogue
+    if (sceneDialogues.length > 0) {
+      currentAutoPlayIndex.current = 0;
+      const firstDialogueId = autoPlayQueue.current[0];
+      playAudio(sceneDialogues[0].voiceURL, firstDialogueId);
+    }
+  }, [stopAudio, playAudio]);
+
   // Toggle play/pause for a dialogue
   const toggleDialogue = useCallback(async (
-    base64Audio: string,
+    audioUrl: string,
     sceneIndex: number,
     dialogueIndex: number
   ) => {
     const dialogueId = generateDialogueId(sceneIndex, dialogueIndex);
+    
+    // Clear auto-play queue when manually selecting dialogue
+    autoPlayQueue.current = [];
+    currentAutoPlayIndex.current = -1;
     
     if (playerState.currentlyPlaying === dialogueId) {
       if (playerState.isPlaying) {
@@ -150,9 +181,20 @@ export const useAudioPlayer = () => {
         await resumeAudio();
       }
     } else {
-      await playAudio(base64Audio, dialogueId);
+      await playAudio(audioUrl, dialogueId);
     }
   }, [playerState.currentlyPlaying, playerState.isPlaying, playAudio, pauseAudio, resumeAudio]);
+
+  // Play narration (if it has audio)
+  const playNarration = useCallback(async (audioUrl: string, sceneIndex: number) => {
+    const narrationId = `narration-${sceneIndex}`;
+    
+    // Clear auto-play queue
+    autoPlayQueue.current = [];
+    currentAutoPlayIndex.current = -1;
+    
+    await playAudio(audioUrl, narrationId);
+  }, [playAudio]);
 
   // Check if a specific dialogue is currently playing
   const isDialoguePlaying = useCallback((sceneIndex: number, dialogueIndex: number) => {
@@ -181,6 +223,8 @@ export const useAudioPlayer = () => {
     stopAudio,
     setVolume,
     toggleDialogue,
+    playNarration,
+    startAutoPlay,
     isDialoguePlaying,
     isDialogueCurrent,
   };

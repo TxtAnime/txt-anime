@@ -106,7 +106,7 @@ export const SceneNavigator = ({ showThumbnails = false, className = '' }: Scene
                 }`}
               >
                 <img
-                  src={`data:image/png;base64,${scene.image}`}
+                  src={scene.imageURL}
                   alt={`Scene ${index + 1}`}
                   className="w-full h-full object-cover"
                   onError={(e) => {

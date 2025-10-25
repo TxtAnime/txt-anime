@@ -23,7 +23,7 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
     getCurrentScene 
   } = useAnime();
   
-  const { toggleDialogue, isDialoguePlaying } = useAudioPlayer();
+  const { toggleDialogue, startAutoPlay, isDialoguePlaying } = useAudioPlayer();
   const { currentTask } = useTasks();
 
   // Load anime data when component mounts or taskId changes
@@ -33,12 +33,27 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
     }
   }, [taskId, currentTask?.status, loadAnimeData]);
 
+  // Auto-play when scene changes
+  useEffect(() => {
+    const scene = getCurrentScene();
+    if (scene && scene.dialogues && scene.dialogues.length > 0) {
+      // Start auto-play for the current scene
+      startAutoPlay(scene.dialogues, currentScene);
+    }
+  }, [currentScene, getCurrentScene, startAutoPlay]);
+
   const handleDialogueClick = async (dialogue: Dialogue, dialogueIndex: number) => {
     try {
-      await toggleDialogue(dialogue.voice, currentScene, dialogueIndex);
+      await toggleDialogue(dialogue.voiceURL, currentScene, dialogueIndex);
     } catch (error) {
       console.error('Failed to play dialogue:', error);
     }
+  };
+
+  const handleNarrationClick = async (narration: string) => {
+    // For now, narration doesn't have audio URL in the API
+    // This could be extended in the future
+    console.log('Narration clicked:', narration);
   };
 
   const getCurrentPlayingDialogue = () => {
@@ -170,9 +185,9 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
           <div className="book-page rounded-lg shadow-lg h-full flex overflow-hidden">
             {/* Left Panel - Image */}
             <div className="flex-1 relative scene-image-container book-page-left">
-              {scene.image ? (
+              {scene.imageURL ? (
                 <img
-                  src={`data:image/svg+xml;base64,${scene.image}`}
+                  src={scene.imageURL}
                   alt={`Scene ${currentScene + 1}`}
                   className="w-full h-full object-contain"
                   onError={(e) => {
@@ -204,7 +219,11 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
                 {/* Narration */}
                 {scene.narration && (
                   <div className="mb-12">
-                    <p className="ebook-narration chinese-serif">
+                    <p 
+                      className="ebook-narration chinese-serif cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
+                      onClick={() => handleNarrationClick(scene.narration)}
+                      title="点击播放旁白"
+                    >
                       {scene.narration}
                     </p>
                   </div>

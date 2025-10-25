@@ -16,6 +16,7 @@ export const useTasks = () => {
       const response = await TaskService.getTasks();
       const tasks = response.tasks.map(task => ({
         ...task,
+        name: task.name || `Project ${task.id.substring(0, 8)}`,
         createdAt: new Date(), // API doesn't provide creation time, using current time
       }));
 
@@ -32,14 +33,15 @@ export const useTasks = () => {
   }, [dispatch]);
 
   // Create new task
-  const createTask = useCallback(async (novel: string) => {
+  const createTask = useCallback(async (name: string, novel: string) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
       dispatch({ type: 'SET_ERROR', payload: null });
 
-      const response = await TaskService.createTask(novel);
+      const response = await TaskService.createTask(name, novel);
       const newTask: Task = {
         id: response.id,
+        name,
         status: 'doing',
         createdAt: new Date(),
       };
@@ -66,6 +68,7 @@ export const useTasks = () => {
       const response = await TaskService.getTask(id);
       const task: Task = {
         ...response,
+        name: response.name || `Project ${response.id.substring(0, 8)}`,
         createdAt: new Date(), // API doesn't provide creation time
       };
 
