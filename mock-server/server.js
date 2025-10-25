@@ -12,8 +12,8 @@ app.use(express.json({ limit: '10mb' }));
 // In-memory storage for tasks
 const tasks = new Map();
 
-// Mock base64 image (small transparent PNG)
-const mockImage = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+// Mock base64 image (just the base64 part without data: prefix)
+const mockImage = 'PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM2MzY2ZjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM4YjVjZjYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2cpIi8+PGNpcmNsZSBjeD0iMjAwIiBjeT0iMTUwIiByPSI1MCIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjMpIi8+PGNpcmNsZSBjeD0iMTAwIiBjeT0iMjAwIiByPSIzMCIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjIpIi8+PGNpcmNsZSBjeD0iMzAwIiBjeT0iMTAwIiByPSI0MCIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjI1KSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+U2NlbmUgSW1hZ2U8L3RleHQ+PC9zdmc+';
 
 // Mock base64 audio (small WAV file)
 const mockAudio = 'UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT';
@@ -25,18 +25,18 @@ function generateMockScenes(novelText) {
   
   for (let i = 0; i < sceneCount; i++) {
     const scene = {
-      image: mockImage,
-      narration: `This is the narration for scene ${i + 1}. The story unfolds as our characters navigate through their journey, revealing deeper meanings and connections.`,
+      imageURL: `data:image/svg+xml;base64,${mockImage}`,
+      narration: `到了奶奶家。奶奶穿着她最喜欢的那件围裙，带着大大的拥抱，还有厨房里飘出的香气。`,
       dialogues: [
         {
-          character: "主角",
-          line: `这是第${i + 1}个场景中主角的台词。`,
-          voice: mockAudio
+          character: "奶奶",
+          line: `欢迎回家，我的宝贝！快进来，我给你准备了你最爱吃的。`,
+          voiceURL: `data:audio/wav;base64,${mockAudio}`
         },
         {
-          character: "配角",
-          line: `这是第${i + 1}个场景中配角的回应。`,
-          voice: mockAudio
+          character: "小明",
+          line: `奶奶！我好想你！这里的味道还是和以前一样温暖。`,
+          voiceURL: `data:audio/wav;base64,${mockAudio}`
         }
       ]
     };
@@ -44,9 +44,9 @@ function generateMockScenes(novelText) {
     // Add some variety to scenes
     if (i % 2 === 0) {
       scene.dialogues.push({
-        character: "旁白者",
-        line: `场景${i + 1}的额外解说内容。`,
-        voice: mockAudio
+        character: "旁白",
+        line: `温暖的阳光透过窗户洒进来，一切都显得那么美好和宁静。`,
+        voiceURL: `data:audio/wav;base64,${mockAudio}`
       });
     }
     
@@ -60,7 +60,11 @@ function generateMockScenes(novelText) {
 
 // Create task
 app.post('/v1/tasks/', (req, res) => {
-  const { novel } = req.body;
+  const { name, novel } = req.body;
+  
+  if (!name || typeof name !== 'string') {
+    return res.status(400).json({ error: 'Project name is required' });
+  }
   
   if (!novel || typeof novel !== 'string') {
     return res.status(400).json({ error: 'Novel text is required' });
@@ -69,6 +73,7 @@ app.post('/v1/tasks/', (req, res) => {
   const taskId = uuidv4();
   const task = {
     id: taskId,
+    name: name,
     status: 'doing',
     novel: novel,
     createdAt: new Date(),
@@ -83,11 +88,11 @@ app.post('/v1/tasks/', (req, res) => {
     if (task) {
       task.status = 'done';
       task.scenes = generateMockScenes(novel);
-      console.log(`Task ${taskId} completed`);
+      console.log(`Task ${taskId} (${name}) completed`);
     }
   }, 10000);
   
-  console.log(`Created task ${taskId} with novel length: ${novel.length}`);
+  console.log(`Created task ${taskId} "${name}" with novel length: ${novel.length}`);
   res.json({ id: taskId });
 });
 
@@ -102,6 +107,7 @@ app.get('/v1/tasks/:id', (req, res) => {
   
   res.json({
     id: task.id,
+    name: task.name,
     status: task.status
   });
 });
@@ -110,6 +116,7 @@ app.get('/v1/tasks/:id', (req, res) => {
 app.get('/v1/tasks/', (req, res) => {
   const taskList = Array.from(tasks.values()).map(task => ({
     id: task.id,
+    name: task.name,
     status: task.status
   }));
   

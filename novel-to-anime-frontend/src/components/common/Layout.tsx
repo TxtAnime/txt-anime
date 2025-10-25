@@ -34,7 +34,7 @@ export const Layout = ({ children }: LayoutProps) => {
         </div>
       </header>
       
-      <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '32px 16px' }}>
+      <main style={{ padding: '24px 0' }}>
         {children}
       </main>
       

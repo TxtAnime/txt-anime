@@ -8,6 +8,7 @@ interface NovelUploadFormProps {
 }
 
 export const NovelUploadForm = ({ onTaskCreated }: NovelUploadFormProps) => {
+  const [projectName, setProjectName] = useState('');
   const [novelText, setNovelText] = useState('在一个遥远的魔法王国里，住着一位年轻的魔法师艾莉娅。她有着一头银白色的长发和深蓝色的眼睛，总是穿着一件深蓝色的魔法袍。艾莉娅虽然年轻，但她的魔法天赋异常出众，特别擅长元素魔法。\n\n这一天，王国突然被一股黑暗力量笼罩，所有的魔法师都感受到了前所未有的威胁。艾莉娅站在魔法塔的顶端，望着远方逐渐逼近的黑云，她知道一场前所未有的战斗即将开始。\n\n"我必须保护这个王国，"艾莉娅坚定地说道，她的眼中闪烁着决心的光芒。她开始吟唱古老的咒语，准备迎接即将到来的挑战。');
   const [validationError, setValidationError] = useState<string | null>(null);
   const { createTask, isLoading, error } = useTasks();
@@ -26,6 +27,11 @@ export const NovelUploadForm = ({ onTaskCreated }: NovelUploadFormProps) => {
     event.preventDefault();
     
     // Validate input
+    if (!projectName.trim()) {
+      setValidationError('Project name is required');
+      return;
+    }
+    
     const validation = validateNovelText(novelText);
     if (!validation.isValid) {
       setValidationError(validation.error || 'Invalid input');
@@ -33,9 +39,10 @@ export const NovelUploadForm = ({ onTaskCreated }: NovelUploadFormProps) => {
     }
 
     try {
-      const task = await createTask(novelText.trim());
+      const task = await createTask(projectName.trim(), novelText.trim());
       
       // Clear form on success
+      setProjectName('');
       setNovelText('');
       setValidationError(null);
       
@@ -62,6 +69,30 @@ export const NovelUploadForm = ({ onTaskCreated }: NovelUploadFormProps) => {
       </div>
       
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div>
+          <label htmlFor="project-name" style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
+            Project Name
+          </label>
+          <input
+            id="project-name"
+            type="text"
+            value={projectName}
+            onChange={(e) => setProjectName(e.target.value)}
+            placeholder="Enter a name for your project..."
+            style={{
+              width: '100%',
+              borderRadius: '8px',
+              padding: '12px',
+              border: `1px solid ${validationError || error ? '#f87171' : '#d1d5db'}`,
+              fontSize: '14px',
+              color: '#111827',
+              outline: 'none',
+              fontFamily: 'inherit'
+            }}
+            disabled={isLoading}
+          />
+        </div>
+        
         <div>
           <label htmlFor="novel-text" style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
             Story Content
@@ -116,7 +147,7 @@ export const NovelUploadForm = ({ onTaskCreated }: NovelUploadFormProps) => {
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <Button
             type="submit"
-            disabled={novelText.trim().length === 0}
+            disabled={!projectName.trim() || novelText.trim().length === 0}
             loading={isLoading}
           >
             {isLoading ? 'Processing...' : 'Generate Anime'}

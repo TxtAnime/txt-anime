@@ -52,15 +52,20 @@ export const TaskCard = ({ task, onSelect, isSelected = false }: TaskCardProps) 
       }`}
     >
       <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center space-x-2">
-          <span className="text-sm font-mono text-gray-700">
-            {task.id.substring(0, 8)}...
+        <div className="flex flex-col">
+          <span className="text-sm font-medium text-gray-900">
+            {task.name || `Project ${task.id.substring(0, 8)}`}
           </span>
-          {task.createdAt && (
-            <span className="text-xs text-gray-500">
-              {formatTaskTime(task.createdAt)}
+          <div className="flex items-center space-x-2 mt-1">
+            <span className="text-xs font-mono text-gray-500">
+              {task.id.substring(0, 8)}...
             </span>
-          )}
+            {task.createdAt && (
+              <span className="text-xs text-gray-500">
+                {formatTaskTime(task.createdAt)}
+              </span>
+            )}
+          </div>
         </div>
         
         <div className={statusConfig.badge}>

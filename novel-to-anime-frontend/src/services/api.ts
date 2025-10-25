@@ -67,8 +67,8 @@ export class TaskService {
   /**
    * Create a new conversion task
    */
-  static async createTask(novel: string): Promise<CreateTaskResponse> {
-    const request: CreateTaskRequest = { novel };
+  static async createTask(name: string, novel: string): Promise<CreateTaskResponse> {
+    const request: CreateTaskRequest = { name, novel };
     return apiClient.post<CreateTaskResponse>('/v1/tasks/', request);
   }
 

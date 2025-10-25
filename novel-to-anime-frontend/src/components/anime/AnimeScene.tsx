@@ -23,18 +23,30 @@ export const AnimeScene = ({
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
       {/* Scene Image */}
       <div className="relative">
-        <img
-          src={`data:image/png;base64,${scene.image}`}
-          alt={`Scene ${sceneIndex + 1}`}
-          className="w-full h-64 sm:h-80 md:h-96 object-cover"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk3YTNiNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIGZhaWxlZCB0byBsb2FkPC90ZXh0Pjwvc3ZnPg==';
-          }}
-        />
+        {scene.imageURL ? (
+          <img
+            src={scene.imageURL}
+            alt={`Scene ${sceneIndex + 1}`}
+            className="w-full h-64 sm:h-80 md:h-96 object-cover"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk3YTNiNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIGZhaWxlZCB0byBsb2FkPC90ZXh0Pjwvc3ZnPg==';
+            }}
+          />
+        ) : (
+          <div className="w-full h-64 sm:h-80 md:h-96 bg-gray-200 flex items-center justify-center">
+            <div className="text-center">
+              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <p className="mt-2 text-sm text-gray-500">Scene {sceneIndex + 1}</p>
+              <p className="text-xs text-gray-400">No image available</p>
+            </div>
+          </div>
+        )}
         
         {/* Scene number overlay */}
-        <div className="absolute top-4 left-4 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm">
+        <div className="absolute top-4 left-4 bg-black bg-opacity-75 text-white px-3 py-1 rounded-lg text-sm font-medium">
           Scene {sceneIndex + 1}
         </div>
       </div>
