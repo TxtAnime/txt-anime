@@ -1,7 +1,5 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loading } from '../common/Loading';
-import { ErrorMessage } from '../common/ErrorMessage';
 import { Button } from '../common/Button';
 import { useAnime } from '../../hooks/useAnime';
 import { useAudioPlayer } from '../../hooks/useAudioPlayer';
@@ -67,38 +65,125 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg shadow p-8">
-        <Loading size="lg" text="Loading anime content..." />
+      <div style={{
+        height: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#f9fafb'
+      }}>
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '16px',
+          padding: '48px',
+          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+          textAlign: 'center',
+          border: '1px solid #e5e7eb'
+        }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            border: '4px solid #e5e7eb',
+            borderTop: '4px solid #3b82f6',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 24px'
+          }}></div>
+          <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: '0 0 8px 0' }}>
+            Loading anime content...
+          </h3>
+          <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
+            Please wait while we prepare your story
+          </p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <ErrorMessage
-          title="Failed to load anime content"
-          message={error}
-          action={
-            <Button onClick={() => loadAnimeData(taskId)} size="sm" variant="secondary">
-              Try Again
-            </Button>
-          }
-        />
+      <div style={{
+        height: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#f9fafb'
+      }}>
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '16px',
+          padding: '48px',
+          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+          textAlign: 'center',
+          border: '1px solid #e5e7eb',
+          maxWidth: '400px'
+        }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            backgroundColor: '#fee2e2',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 24px'
+          }}>
+            <svg style={{ width: '24px', height: '24px', color: '#dc2626' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: '0 0 8px 0' }}>
+            Failed to load anime content
+          </h3>
+          <p style={{ fontSize: '14px', color: '#6b7280', margin: '0 0 24px 0' }}>
+            {error}
+          </p>
+          <Button onClick={() => loadAnimeData(taskId)} size="sm" variant="secondary">
+            Try Again
+          </Button>
+        </div>
       </div>
     );
   }
 
   if (!animeData || !animeData.scenes || animeData.scenes.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow p-8 text-center">
-        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m0 0V1a1 1 0 011-1h2a1 1 0 011 1v18a1 1 0 01-1 1H4a1 1 0 01-1-1V1a1 1 0 011-1h2a1 1 0 011 1v3m0 0h8m-8 0V1" />
-        </svg>
-        <h3 className="mt-2 text-sm font-medium text-gray-900">No anime content available</h3>
-        <p className="mt-1 text-sm text-gray-500">
-          The conversion task may not be complete yet.
-        </p>
+      <div style={{
+        height: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#f9fafb'
+      }}>
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '16px',
+          padding: '48px',
+          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+          textAlign: 'center',
+          border: '1px solid #e5e7eb'
+        }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            backgroundColor: '#f3f4f6',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 24px'
+          }}>
+            <svg style={{ width: '24px', height: '24px', color: '#9ca3af' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m0 0V1a1 1 0 011-1h2a1 1 0 011 1v18a1 1 0 01-1 1H4a1 1 0 01-1-1V1a1 1 0 011-1h2a1 1 0 011 1v3m0 0h8m-8 0V1" />
+            </svg>
+          </div>
+          <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: '0 0 8px 0' }}>
+            No anime content available
+          </h3>
+          <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
+            The conversion task may not be complete yet.
+          </p>
+        </div>
       </div>
     );
   }
@@ -106,123 +191,301 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
   const scene = getCurrentScene();
   if (!scene) {
     return (
-      <div className="bg-white rounded-lg shadow p-8 text-center">
-        <p className="text-gray-500">Scene not found</p>
+      <div style={{
+        height: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#f9fafb'
+      }}>
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '16px',
+          padding: '48px',
+          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+          textAlign: 'center',
+          border: '1px solid #e5e7eb'
+        }}>
+          <p style={{ fontSize: '16px', color: '#6b7280', margin: 0 }}>Scene not found</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#f9fafb' }}>
       {/* Top Navigation Bar */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+      <div style={{
+        backgroundColor: 'white',
+        borderBottom: '1px solid #e5e7eb',
+        padding: '16px 24px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <button
             onClick={() => navigate('/')}
-            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              color: '#6b7280',
+              backgroundColor: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '8px 12px',
+              borderRadius: '8px',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#f3f4f6';
+              e.currentTarget.style.color = '#111827';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = '#6b7280';
+            }}
           >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg style={{ width: '20px', height: '20px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            <span className="text-sm">返回</span>
+            <span style={{ fontSize: '14px', fontWeight: '500' }}>返回首页</span>
           </button>
           
-          <div className="h-6 w-px bg-gray-300"></div>
+          <div style={{ width: '1px', height: '24px', backgroundColor: '#d1d5db' }}></div>
           
-          <h2 className="text-lg font-medium text-gray-900">
-            星光照和家的味道
-          </h2>
-          <span className="text-sm text-gray-500">
-            {currentScene + 1} / {animeData.scenes.length}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              width: '32px',
+              height: '32px',
+              background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <svg style={{ width: '16px', height: '16px', color: 'white' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m0 0V1a1 1 0 011-1h2a1 1 0 011 1v18a1 1 0 01-1 1H4a1 1 0 01-1-1V1a1 1 0 011-1h2a1 1 0 011 1v3m0 0h8m-8 0V1" />
+              </svg>
+            </div>
+            <div>
+              <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: 0 }}>
+                {currentTask?.name || '星光照和家的味道'}
+              </h2>
+              <span style={{ fontSize: '14px', color: '#6b7280' }}>
+                第 {currentScene + 1} 章 / 共 {animeData.scenes.length} 章
+              </span>
+            </div>
+          </div>
         </div>
         
-        <div className="flex items-center space-x-2">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {/* Navigation buttons */}
           <button 
-            className="nav-button text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              padding: '8px',
+              color: currentScene === 0 ? '#d1d5db' : '#6b7280',
+              backgroundColor: 'transparent',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: currentScene === 0 ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s ease'
+            }}
             disabled={currentScene === 0}
             onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }))}
-            title="上一页"
+            title="上一章"
+            onMouseEnter={(e) => {
+              if (currentScene !== 0) {
+                e.currentTarget.style.backgroundColor = '#f3f4f6';
+                e.currentTarget.style.color = '#111827';
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = currentScene === 0 ? '#d1d5db' : '#6b7280';
+            }}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg style={{ width: '20px', height: '20px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
           
           <button 
-            className="nav-button text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              padding: '8px',
+              color: currentScene === animeData.scenes.length - 1 ? '#d1d5db' : '#6b7280',
+              backgroundColor: 'transparent',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: currentScene === animeData.scenes.length - 1 ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s ease'
+            }}
             disabled={currentScene === animeData.scenes.length - 1}
             onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }))}
-            title="下一页"
+            title="下一章"
+            onMouseEnter={(e) => {
+              if (currentScene !== animeData.scenes.length - 1) {
+                e.currentTarget.style.backgroundColor = '#f3f4f6';
+                e.currentTarget.style.color = '#111827';
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = currentScene === animeData.scenes.length - 1 ? '#d1d5db' : '#6b7280';
+            }}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg style={{ width: '20px', height: '20px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
           
-          <div className="h-6 w-px bg-gray-300 mx-2"></div>
+          <div style={{ width: '1px', height: '24px', backgroundColor: '#d1d5db', margin: '0 8px' }}></div>
           
           {/* Audio control */}
-          <button className="nav-button text-gray-400 hover:text-gray-600" title="听书模式">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button 
+            style={{
+              padding: '8px',
+              color: '#6b7280',
+              backgroundColor: 'transparent',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            title="听书模式"
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#f3f4f6';
+              e.currentTarget.style.color = '#111827';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = '#6b7280';
+            }}
+          >
+            <svg style={{ width: '20px', height: '20px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-            </svg>
-          </button>
-          
-          {/* Fullscreen */}
-          <button className="nav-button text-gray-400 hover:text-gray-600" title="全屏">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
             </svg>
           </button>
         </div>
       </div>
 
-      {/* Main Content Area - Book-like Layout */}
-      <div className="flex-1 bg-gray-100 p-6 ebook-reader">
-        <div className="max-w-7xl mx-auto h-full">
-          <div className="book-page rounded-lg shadow-lg h-full flex overflow-hidden">
+      {/* Main Content Area */}
+      <div style={{ 
+        flex: 1, 
+        padding: '24px', 
+        overflow: 'hidden'
+      }}>
+        <div style={{ 
+          maxWidth: '1400px', 
+          margin: '0 auto', 
+          height: '100%'
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '16px',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+            height: '100%',
+            display: 'flex',
+            overflow: 'hidden',
+            border: '1px solid #e5e7eb'
+          }}>
             {/* Left Panel - Image */}
-            <div className="flex-1 relative scene-image-container book-page-left">
+            <div style={{ 
+              flex: 1, 
+              position: 'relative',
+              backgroundColor: '#f8f9fa',
+              borderRight: '1px solid #e5e7eb'
+            }}>
               {scene.imageURL ? (
                 <img
                   src={scene.imageURL}
                   alt={`Scene ${currentScene + 1}`}
-                  className="w-full h-full object-contain"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain'
+                  }}
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk3YTNiNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIGZhaWxlZCB0byBsb2FkPC90ZXh0Pjwvc3ZnPg==';
                   }}
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <div className="text-center">
-                    <svg className="mx-auto h-16 w-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center'
+                }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <svg style={{ 
+                      width: '64px', 
+                      height: '64px', 
+                      color: '#d1d5db',
+                      margin: '0 auto 16px'
+                    }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <p className="mt-4 text-lg text-gray-400">Scene {currentScene + 1}</p>
-                    <p className="text-sm text-gray-300">No image available</p>
+                    <p style={{ fontSize: '18px', color: '#9ca3af', margin: '0 0 8px 0' }}>Scene {currentScene + 1}</p>
+                    <p style={{ fontSize: '14px', color: '#d1d5db', margin: 0 }}>No image available</p>
                   </div>
                 </div>
               )}
               
               {/* Scene number overlay */}
-              <div className="absolute top-6 right-6 bg-black bg-opacity-75 text-white px-3 py-2 rounded-lg text-sm font-medium">
+              <div style={{
+                position: 'absolute',
+                top: '24px',
+                right: '24px',
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                color: 'white',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '500'
+              }}>
                 {currentScene + 1}
               </div>
             </div>
 
             {/* Right Panel - Text Content */}
-            <div className="flex-1 flex flex-col book-page-right">
-              <div className="flex-1 p-12 overflow-y-auto text-content">
+            <div style={{ 
+              flex: 1, 
+              display: 'flex', 
+              flexDirection: 'column'
+            }}>
+              <div style={{ 
+                flex: 1, 
+                padding: '48px', 
+                overflowY: 'auto'
+              }}>
                 {/* Narration */}
                 {scene.narration && (
-                  <div className="mb-12">
+                  <div style={{ marginBottom: '48px' }}>
                     <p 
-                      className="ebook-narration chinese-serif cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
+                      style={{
+                        fontSize: '18px',
+                        lineHeight: '1.8',
+                        color: '#1f2937',
+                        cursor: 'pointer',
+                        padding: '16px',
+                        borderRadius: '12px',
+                        transition: 'background-color 0.2s ease',
+                        fontFamily: '"Noto Serif SC", "Times New Roman", serif',
+                        textAlign: 'justify',
+                        letterSpacing: '0.05em'
+                      }}
                       onClick={() => handleNarrationClick(scene.narration)}
                       title="点击播放旁白"
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#f9fafb';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }}
                     >
                       {scene.narration}
                     </p>
@@ -231,34 +494,62 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
 
                 {/* Dialogues */}
                 {scene.dialogues && scene.dialogues.length > 0 && (
-                  <div className="space-y-6">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                     {scene.dialogues.map((dialogue, index) => {
                       const isCurrentlyPlaying = getCurrentPlayingDialogue() === index;
                       return (
                         <div
                           key={index}
                           onClick={() => handleDialogueClick(dialogue, index)}
-                          className={`dialogue-item p-4 cursor-pointer ${
-                            isCurrentlyPlaying ? 'playing' : ''
-                          }`}
+                          style={{
+                            padding: '20px',
+                            cursor: 'pointer',
+                            borderRadius: '12px',
+                            transition: 'all 0.2s ease',
+                            backgroundColor: isCurrentlyPlaying ? '#eff6ff' : 'transparent',
+                            border: isCurrentlyPlaying ? '2px solid #3b82f6' : '2px solid transparent',
+                            position: 'relative'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isCurrentlyPlaying) {
+                              e.currentTarget.style.backgroundColor = '#f9fafb';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isCurrentlyPlaying) {
+                              e.currentTarget.style.backgroundColor = 'transparent';
+                            }
+                          }}
                         >
-                          <div className="flex items-start space-x-3">
-                            <div className="flex-shrink-0 mt-1">
+                          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+                            <div style={{ flexShrink: 0, marginTop: '4px' }}>
                               {isCurrentlyPlaying ? (
-                                <svg className="h-5 w-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                <svg style={{ width: '20px', height: '20px', color: '#3b82f6' }} fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
                                 </svg>
                               ) : (
-                                <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                                <svg style={{ width: '20px', height: '20px', color: '#9ca3af' }} fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                                 </svg>
                               )}
                             </div>
-                            <div className="flex-1">
-                              <div className="ebook-character-name mb-2">
+                            <div style={{ flex: 1 }}>
+                              <div style={{
+                                fontSize: '14px',
+                                fontWeight: '600',
+                                color: '#4b5563',
+                                marginBottom: '8px',
+                                letterSpacing: '0.025em'
+                              }}>
                                 {dialogue.character}
                               </div>
-                              <p className="ebook-dialogue chinese-text">
+                              <p style={{
+                                fontSize: '16px',
+                                lineHeight: '1.7',
+                                color: '#1f2937',
+                                margin: 0,
+                                fontFamily: '"Noto Sans SC", sans-serif'
+                              }}>
                                 "{dialogue.line}"
                               </p>
                             </div>
@@ -271,8 +562,18 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
               </div>
 
               {/* Bottom page indicator */}
-              <div className="p-6 border-t border-gray-100 text-center">
-                <span className="page-number">{currentScene + 1}</span>
+              <div style={{
+                padding: '24px',
+                borderTop: '1px solid #f3f4f6',
+                textAlign: 'center'
+              }}>
+                <span style={{
+                  fontSize: '14px',
+                  color: '#6b7280',
+                  fontFamily: 'Georgia, serif'
+                }}>
+                  第 {currentScene + 1} 章
+                </span>
               </div>
             </div>
           </div>
