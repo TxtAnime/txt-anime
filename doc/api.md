@@ -1,4 +1,4 @@
-# novel2comic api
+# novel2comicd api
 
 ## 创建任务
 
@@ -29,46 +29,41 @@ GET /v1/tasks/:id
 
 {
 	id: <string>,
-	status: <string>
+	status: <string>,
+	senceCount: <int>
 }
 ```
 - status: 字符串枚举值，值有 `doing`、`done`
+- senceCount：场景个数
 
-## 获取任务产物
+## 获取任务中剧本指定场景下的产物
 
 ```
 请求
 
-GET /v1/tasks/:id/artifacts
+GET /v1/tasks/<id>/artifaces/scenes/:idx
 
 响应
 
 {
-	scenes: [
+	image: <base64Bytes>,
+	narration: <string>,
+	dialogues: [
 		{
-			image: <base64Bytes>,
-			narration: <string>,
-			dialogues: [
-				{
-					character: <string>,
-					line: <string>,
-					voice: <base64Bytes>
-				},
-				...
-			]
+			character: <string>,
+			line: <string>,
+			voice: <base64Bytes>
 		},
 		...
 	]
 }
 ```
-
-- scenes：场景列表
-	- image：场景的图片，base64 编码的 png 格式
-	- narration：场景的旁白
-	- dialogues：场景中的对话列表
-    	- character：角色名称
-    	- line：角色台词
-    	- voice：角色台词的语音，base64 编码
+- image：场景的图片，base64 编码的 png 格式
+- narration：场景的旁白
+- dialogues：场景中的对话列表
+  	- character：角色名称
+  	- line：角色台词
+  	- voice：角色台词的语音，base64 编码
 
 ## 获取任务列表
 
@@ -83,7 +78,8 @@ GET /v1/tasks/
 	tasks: [
 		{
 			id: <string>,
-			status: <string>
+			status: <string>,
+			senceCount: <int>
 		},
 		...
 	]
