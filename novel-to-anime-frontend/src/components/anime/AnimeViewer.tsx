@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../common/Button';
 import { useAnime } from '../../hooks/useAnime';
 import { useAudioPlayer } from '../../hooks/useAudioPlayer';
 import { useTasks } from '../../hooks/useTasks';
+import { storage } from '../../utils';
 import type { Dialogue } from '../../types';
 
 interface AnimeViewerProps {
@@ -12,6 +13,11 @@ interface AnimeViewerProps {
 
 export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
   const navigate = useNavigate();
+  const [autoPlayEnabled, setAutoPlayEnabled] = useState(() => {
+    // Load auto-play preference from localStorage
+    return storage.getItem('autoPlayEnabled', true);
+  });
+  
   const { 
     animeData, 
     currentScene, 
@@ -24,7 +30,11 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
     goToScene
   } = useAnime();
   
+<<<<<<< Updated upstream
   const { toggleDialogue, isDialoguePlaying } = useAudioPlayer();
+=======
+  const { toggleDialogue, playNarration, startAutoPlay, isDialoguePlaying, playerState } = useAudioPlayer();
+>>>>>>> Stashed changes
   const { currentTask } = useTasks();
 
   // Load anime data when component mounts or taskId changes
@@ -34,37 +44,68 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
     }
   }, [taskId, currentTask?.status, loadAnimeData]);
 
-  // Auto-play when scene changes (disabled for now to avoid issues)
+  // Save auto-play preference when it changes
   useEffect(() => {
+    storage.setItem('autoPlayEnabled', autoPlayEnabled);
+  }, [autoPlayEnabled]);
+
+  // Auto-play when scene changes or project opens
+  useEffect(() => {
+    if (!autoPlayEnabled) return;
+    
     const scene = getCurrentScene();
     console.log('Scene changed:', { 
       currentScene, 
       scene,
       hasDialogues: scene?.dialogues ? scene.dialogues.length : 0,
-      allScenes: animeData?.scenes?.map((s, i) => ({
-        index: i,
-        hasDialogues: s.dialogues ? s.dialogues.length : 0
-      }))
+      hasNarration: !!scene?.narrationVoiceURL,
+      autoPlayEnabled
     });
-    if (scene && scene.dialogues && scene.dialogues.length > 0) {
-      console.log('Scene has dialogues:', scene.dialogues.length, scene.dialogues);
-      // Disable auto-play for now to avoid browser blocking
-      // startAutoPlay(scene.dialogues, currentScene);
+    
+    if (scene) {
+      // Use auto-play queue to play narration and dialogues in sequence
+      const hasNarration = scene.narrationVoiceURL;
+      const hasDialogues = scene.dialogues && scene.dialogues.length > 0;
+      
+      if (hasNarration || hasDialogues) {
+        console.log('Starting auto-play for scene:', currentScene);
+        setTimeout(() => {
+          startAutoPlay(
+            scene.dialogues || [], 
+            currentScene, 
+            hasNarration ? { url: scene.narrationVoiceURL! } : undefined
+          );
+        }, 500); // Small delay to ensure UI is ready
+      }
     }
-  }, [currentScene, getCurrentScene, animeData]);
+  }, [currentScene, getCurrentScene, animeData, startAutoPlay, autoPlayEnabled]);
 
   const handleDialogueClick = async (dialogue: Dialogue, dialogueIndex: number) => {
     try {
+      // Manual click stops auto-play for this scene
       await toggleDialogue(dialogue.voiceURL, currentScene, dialogueIndex);
     } catch (error) {
       console.error('Failed to play dialogue:', error);
     }
   };
 
+<<<<<<< Updated upstream
   const handleNarrationClick = async (narration: string) => {
     // For now, narration doesn't have audio URL in the API
     // This could be extended in the future
     console.log('Narration clicked:', narration);
+=======
+  const handleNarrationClick = async () => {
+    const scene = getCurrentScene();
+    if (scene?.narrationVoiceURL) {
+      try {
+        // Manual click stops auto-play for this scene
+        await playNarration(scene.narrationVoiceURL, currentScene);
+      } catch (error) {
+        console.error('Failed to play narration:', error);
+      }
+    }
+>>>>>>> Stashed changes
   };
 
   const getCurrentPlayingDialogue = () => {
@@ -301,6 +342,24 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
                     有对话
                   </span>
                 )}
+                {autoPlayEnabled && (
+                  <span style={{ 
+                    marginLeft: '8px', 
+                    padding: '2px 6px', 
+                    backgroundColor: '#3b82f6', 
+                    color: 'white', 
+                    borderRadius: '4px', 
+                    fontSize: '12px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}>
+                    <svg style={{ width: '10px', height: '10px' }} fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                    </svg>
+                    自动播放
+                  </span>
+                )}
               </span>
             </div>
           </div>
@@ -403,91 +462,43 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
             跳转到对话
           </button>
           
-          {/* Find Dialogue Button */}
+
+          
+          {/* Auto-play toggle */}
           <button 
             style={{
               padding: '8px 12px',
-              color: 'white',
-              backgroundColor: '#ef4444',
-              border: 'none',
+              color: autoPlayEnabled ? 'white' : '#6b7280',
+              backgroundColor: autoPlayEnabled ? '#10b981' : 'transparent',
+              border: autoPlayEnabled ? 'none' : '1px solid #d1d5db',
               borderRadius: '8px',
               cursor: 'pointer',
               fontSize: '12px',
-              fontWeight: '500'
+              fontWeight: '500',
+              transition: 'all 0.2s ease',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
             }}
-            onClick={() => {
-              const testUrl = 'http://t4o5zbe8f.hd-bkt.clouddn.com/tasks/c632597e-c361-435b-82df-6e67ead574f6/scene_002_dialogue_001.mp3';
-              console.log('Testing audio URL:', testUrl);
-              
-              const audio = new Audio(testUrl);
-              audio.crossOrigin = 'anonymous';
-              
-              audio.addEventListener('loadstart', () => console.log('Test: loadstart'));
-              audio.addEventListener('loadedmetadata', () => console.log('Test: loadedmetadata, duration:', audio.duration));
-              audio.addEventListener('canplay', () => console.log('Test: canplay'));
-              audio.addEventListener('play', () => console.log('Test: play event'));
-              audio.addEventListener('error', (e) => {
-                console.error('Test: error event:', e);
-                const error = audio.error;
-                if (error) {
-                  console.error('Test: MediaError code:', error.code, 'message:', error.message);
-                }
-              });
-              
-              audio.play().then(() => {
-                console.log('Test: play() promise resolved');
-              }).catch(error => {
-                console.error('Test: play() promise rejected:', error);
-                alert('播放失败: ' + error.message);
-              });
-            }}
-          >
-            测试音频
-          </button>
-          
-          {/* Audio control */}
-          <button 
-            style={{
-              padding: '8px',
-              color: '#6b7280',
-              backgroundColor: 'transparent',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease'
-            }}
-            title="听书模式"
-            onClick={() => {
-              // Test audio playback with a known working URL
-              const testUrl = 'http://t4o5zbe8f.hd-bkt.clouddn.com/tasks/c632597e-c361-435b-82df-6e67ead574f6/scene_002_dialogue_001.mp3';
-              console.log('Testing direct audio playback:', testUrl);
-              
-              // Create a simple audio element and try to play
-              const audio = new Audio(testUrl);
-              audio.addEventListener('loadstart', () => console.log('Direct test: Audio loading started'));
-              audio.addEventListener('canplay', () => console.log('Direct test: Audio can play'));
-              audio.addEventListener('play', () => console.log('Direct test: Audio started playing'));
-              audio.addEventListener('error', (e) => console.error('Direct test: Audio error:', e));
-              
-              audio.play().then(() => {
-                console.log('Direct test: Audio play() succeeded');
-              }).catch(error => {
-                console.error('Direct test: Audio play() failed:', error);
-                alert('Audio playback failed: ' + error.message);
-              });
-            }}
+            title={autoPlayEnabled ? "关闭自动播放" : "开启自动播放"}
+            onClick={() => setAutoPlayEnabled(!autoPlayEnabled)}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#f3f4f6';
-              e.currentTarget.style.color = '#111827';
+              if (!autoPlayEnabled) {
+                e.currentTarget.style.backgroundColor = '#f3f4f6';
+                e.currentTarget.style.color = '#111827';
+              }
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.color = '#6b7280';
+              if (!autoPlayEnabled) {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.color = '#6b7280';
+              }
             }}
           >
-            <svg style={{ width: '20px', height: '20px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg style={{ width: '16px', height: '16px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
             </svg>
+            <span>{autoPlayEnabled ? '自动播放' : '手动播放'}</span>
           </button>
         </div>
       </div>
