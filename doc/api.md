@@ -30,6 +30,7 @@ GET /v1/tasks/:id
 
 {
 	id: <string>,
+	name: <string>,
 	status: <string>
 }
 ```
@@ -84,6 +85,7 @@ GET /v1/tasks/
 	tasks: [
 		{
 			id: <string>,
+			name: <string>,
 			status: <string>
 		},
 		...
