@@ -94,7 +94,7 @@ export const SceneNavigator = ({ showThumbnails = false, className = '' }: Scene
       {showThumbnails && (
         <div>
           <h3 className="text-sm font-medium text-gray-700 mb-3">Scene Overview</h3>
-          <div className="grid grid-cols-4 gap-2 max-h-64 overflow-y-auto">
+          <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">
             {animeData.scenes.map((scene, index) => (
               <button
                 key={index}

@@ -341,6 +341,29 @@ Enhanced button styles */
   background: linear-gradient(135deg, #1d4ed8, #7c3aed);
 }
 
+/* Responsive improvements */
+@media (max-width: 640px) {
+  .glass-effect-strong {
+    padding: 1rem;
+    border-radius: 1rem;
+  }
+  
+  .card-hover:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* Better spacing for mobile */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+  
+  .gradient-text {
+    font-size: 1.25rem;
+  }
+}
+
 /* Text selection */
 ::selection {
   background: rgba(59, 130, 246, 0.2);
@@ -517,4 +540,213 @@ Additional micro-interactions and polish */
 @keyframes progressGlow {
   0% { left: -100%; }
   100% { left: 100%; }
+}
+/
+* E-book Reader Styles for Anime Viewer */
+.ebook-reader {
+  font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+.ebook-content {
+  line-height: 1.8;
+  font-size: 16px;
+  color: #2d3748;
+  text-align: justify;
+  text-justify: inter-ideograph;
+}
+
+.ebook-content p {
+  margin-bottom: 1.5em;
+  text-indent: 2em;
+}
+
+.ebook-narration {
+  font-family: 'Noto Serif SC', 'Times New Roman', serif;
+  line-height: 1.9;
+  font-size: 18px;
+  color: #1a202c;
+  text-align: justify;
+  text-justify: inter-ideograph;
+  letter-spacing: 0.05em;
+}
+
+.ebook-dialogue {
+  font-family: 'Noto Sans SC', sans-serif;
+  line-height: 1.7;
+  font-size: 16px;
+  color: #2d3748;
+}
+
+.ebook-character-name {
+  font-weight: 600;
+  color: #4a5568;
+  font-size: 14px;
+  letter-spacing: 0.025em;
+}
+
+/* Book-like page styling */
+.book-page {
+  background: #fefefe;
+  box-shadow: 
+    0 0 20px rgba(0, 0, 0, 0.1),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+.book-page-left {
+  border-right: 1px solid #e2e8f0;
+}
+
+.book-page-right {
+  border-left: 1px solid #e2e8f0;
+}
+
+/* Page number styling */
+.page-number {
+  font-family: 'Georgia', serif;
+  font-size: 12px;
+  color: #718096;
+  text-align: center;
+}
+
+/* Enhanced navigation buttons */
+.nav-button {
+  transition: all 0.2s ease;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-button:hover {
+  background-color: #f7fafc;
+  transform: scale(1.1);
+}
+
+.nav-button:active {
+  transform: scale(0.95);
+}
+
+/* Reading progress indicator */
+.reading-progress {
+  background: linear-gradient(90deg, #4299e1, #667eea);
+  height: 3px;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* Smooth scrolling for text content */
+.text-content {
+  scroll-behavior: smooth;
+}
+
+.text-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.text-content::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+}
+
+.text-content::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.text-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Image container styling */
+.scene-image-container {
+  background: #f8f9fa;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* Dialogue interaction effects */
+.dialogue-item {
+  transition: all 0.2s ease;
+  border-radius: 8px;
+  position: relative;
+}
+
+.dialogue-item:hover {
+  background-color: #f7fafc;
+  transform: translateX(4px);
+}
+
+.dialogue-item.playing {
+  background: linear-gradient(135deg, #ebf8ff, #e6fffa);
+  border-left: 4px solid #4299e1;
+  box-shadow: 0 2px 8px rgba(66, 153, 225, 0.2);
+}
+
+.dialogue-item.playing::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #4299e1, #38b2ac);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Typography improvements for Chinese text */
+.chinese-text {
+  font-family: 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  font-feature-settings: 'kern' 1;
+  text-rendering: optimizeLegibility;
+}
+
+.chinese-serif {
+  font-family: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .ebook-content {
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  
+  .ebook-narration {
+    font-size: 16px;
+    line-height: 1.8;
+  }
+  
+  .ebook-dialogue {
+    font-size: 14px;
+  }
+}
+
+/* Dark mode support (if needed later) */
+@media (prefers-color-scheme: dark) {
+  .book-page {
+    background: #1a202c;
+    color: #e2e8f0;
+  }
+  
+  .ebook-narration {
+    color: #f7fafc;
+  }
+  
+  .ebook-dialogue {
+    color: #e2e8f0;
+  }
+  
+  .ebook-character-name {
+    color: #a0aec0;
+  }
 }
