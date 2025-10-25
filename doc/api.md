@@ -8,6 +8,7 @@
 POST /v1/tasks/
 
 {
+	name: <string>,
 	novel: <string>
 }
 
@@ -46,13 +47,13 @@ GET /v1/tasks/:id/artifacts
 {
 	scenes: [
 		{
-			image: <base64Bytes>,
+			imageURL: <string>,
 			narration: <string>,
 			dialogues: [
 				{
 					character: <string>,
 					line: <string>,
-					voice: <base64Bytes>
+					voiceURL: <string>
 				},
 				...
 			]
