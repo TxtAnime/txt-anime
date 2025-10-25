@@ -50,8 +50,27 @@ func main() {
 	// 创建 HTTP 处理器
 	handler := NewHandler(db)
 
+	// CORS 中间件
+	corsHandler := func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			// 设置 CORS 头
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			
+			// 处理预检请求
+			if r.Method == http.MethodOptions {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+			
+			// 调用下一个处理器
+			next(w, r)
+		}
+	}
+
 	// 注册路由
-	http.HandleFunc("/v1/tasks/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/v1/tasks/", corsHandler(func(w http.ResponseWriter, r *http.Request) {
 		// 路由分发
 		if r.URL.Path == "/v1/tasks/" {
 			// GET /v1/tasks/ - 获取任务列表
@@ -74,13 +93,13 @@ func main() {
 		} else {
 			http.Error(w, "Not found", http.StatusNotFound)
 		}
-	})
+	}))
 
 	// 健康检查端点
-	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/health", corsHandler(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
-	})
+	}))
 
 	// 启动 HTTP 服务器
 	addr := fmt.Sprintf(":%d", config.Server.Port)

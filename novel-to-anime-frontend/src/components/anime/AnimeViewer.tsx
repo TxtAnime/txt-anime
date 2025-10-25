@@ -18,10 +18,13 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
     isLoading, 
     error, 
     loadAnimeData, 
-    getCurrentScene 
+    getCurrentScene,
+    nextScene,
+    previousScene,
+    goToScene
   } = useAnime();
   
-  const { toggleDialogue, startAutoPlay, isDialoguePlaying } = useAudioPlayer();
+  const { toggleDialogue, isDialoguePlaying } = useAudioPlayer();
   const { currentTask } = useTasks();
 
   // Load anime data when component mounts or taskId changes
@@ -31,14 +34,24 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
     }
   }, [taskId, currentTask?.status, loadAnimeData]);
 
-  // Auto-play when scene changes
+  // Auto-play when scene changes (disabled for now to avoid issues)
   useEffect(() => {
     const scene = getCurrentScene();
+    console.log('Scene changed:', { 
+      currentScene, 
+      scene,
+      hasDialogues: scene?.dialogues ? scene.dialogues.length : 0,
+      allScenes: animeData?.scenes?.map((s, i) => ({
+        index: i,
+        hasDialogues: s.dialogues ? s.dialogues.length : 0
+      }))
+    });
     if (scene && scene.dialogues && scene.dialogues.length > 0) {
-      // Start auto-play for the current scene
-      startAutoPlay(scene.dialogues, currentScene);
+      console.log('Scene has dialogues:', scene.dialogues.length, scene.dialogues);
+      // Disable auto-play for now to avoid browser blocking
+      // startAutoPlay(scene.dialogues, currentScene);
     }
-  }, [currentScene, getCurrentScene, startAutoPlay]);
+  }, [currentScene, getCurrentScene, animeData]);
 
   const handleDialogueClick = async (dialogue: Dialogue, dialogueIndex: number) => {
     try {
@@ -276,6 +289,18 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
               </h2>
               <span style={{ fontSize: '14px', color: '#6b7280' }}>
                 第 {currentScene + 1} 章 / 共 {animeData.scenes.length} 章
+                {scene.dialogues && scene.dialogues.length > 0 && (
+                  <span style={{ 
+                    marginLeft: '8px', 
+                    padding: '2px 6px', 
+                    backgroundColor: '#10b981', 
+                    color: 'white', 
+                    borderRadius: '4px', 
+                    fontSize: '12px' 
+                  }}>
+                    有对话
+                  </span>
+                )}
               </span>
             </div>
           </div>
@@ -294,7 +319,10 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
               transition: 'all 0.2s ease'
             }}
             disabled={currentScene === 0}
-            onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }))}
+            onClick={() => {
+              console.log('Previous scene clicked, current scene:', currentScene);
+              previousScene();
+            }}
             title="上一章"
             onMouseEnter={(e) => {
               if (currentScene !== 0) {
@@ -323,7 +351,10 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
               transition: 'all 0.2s ease'
             }}
             disabled={currentScene === animeData.scenes.length - 1}
-            onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }))}
+            onClick={() => {
+              console.log('Next scene clicked, current scene:', currentScene);
+              nextScene();
+            }}
             title="下一章"
             onMouseEnter={(e) => {
               if (currentScene !== animeData.scenes.length - 1) {
@@ -343,6 +374,77 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
           
           <div style={{ width: '1px', height: '24px', backgroundColor: '#d1d5db', margin: '0 8px' }}></div>
           
+          {/* Quick Scene Jump */}
+          <button 
+            style={{
+              padding: '8px 12px',
+              color: 'white',
+              backgroundColor: '#3b82f6',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '12px',
+              fontWeight: '500'
+            }}
+            onClick={() => {
+              console.log('Jumping to scene with dialogue');
+              // Find first scene with dialogues
+              const sceneWithDialogue = animeData.scenes.findIndex(scene => 
+                scene.dialogues && scene.dialogues.length > 0
+              );
+              if (sceneWithDialogue !== -1) {
+                console.log('Found scene with dialogue at index:', sceneWithDialogue);
+                goToScene(sceneWithDialogue);
+              } else {
+                alert('没有找到包含对话的场景');
+              }
+            }}
+          >
+            跳转到对话
+          </button>
+          
+          {/* Find Dialogue Button */}
+          <button 
+            style={{
+              padding: '8px 12px',
+              color: 'white',
+              backgroundColor: '#ef4444',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '12px',
+              fontWeight: '500'
+            }}
+            onClick={() => {
+              const testUrl = 'http://t4o5zbe8f.hd-bkt.clouddn.com/tasks/c632597e-c361-435b-82df-6e67ead574f6/scene_002_dialogue_001.mp3';
+              console.log('Testing audio URL:', testUrl);
+              
+              const audio = new Audio(testUrl);
+              audio.crossOrigin = 'anonymous';
+              
+              audio.addEventListener('loadstart', () => console.log('Test: loadstart'));
+              audio.addEventListener('loadedmetadata', () => console.log('Test: loadedmetadata, duration:', audio.duration));
+              audio.addEventListener('canplay', () => console.log('Test: canplay'));
+              audio.addEventListener('play', () => console.log('Test: play event'));
+              audio.addEventListener('error', (e) => {
+                console.error('Test: error event:', e);
+                const error = audio.error;
+                if (error) {
+                  console.error('Test: MediaError code:', error.code, 'message:', error.message);
+                }
+              });
+              
+              audio.play().then(() => {
+                console.log('Test: play() promise resolved');
+              }).catch(error => {
+                console.error('Test: play() promise rejected:', error);
+                alert('播放失败: ' + error.message);
+              });
+            }}
+          >
+            测试音频
+          </button>
+          
           {/* Audio control */}
           <button 
             style={{
@@ -355,6 +457,25 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
               transition: 'all 0.2s ease'
             }}
             title="听书模式"
+            onClick={() => {
+              // Test audio playback with a known working URL
+              const testUrl = 'http://t4o5zbe8f.hd-bkt.clouddn.com/tasks/c632597e-c361-435b-82df-6e67ead574f6/scene_002_dialogue_001.mp3';
+              console.log('Testing direct audio playback:', testUrl);
+              
+              // Create a simple audio element and try to play
+              const audio = new Audio(testUrl);
+              audio.addEventListener('loadstart', () => console.log('Direct test: Audio loading started'));
+              audio.addEventListener('canplay', () => console.log('Direct test: Audio can play'));
+              audio.addEventListener('play', () => console.log('Direct test: Audio started playing'));
+              audio.addEventListener('error', (e) => console.error('Direct test: Audio error:', e));
+              
+              audio.play().then(() => {
+                console.log('Direct test: Audio play() succeeded');
+              }).catch(error => {
+                console.error('Direct test: Audio play() failed:', error);
+                alert('Audio playback failed: ' + error.message);
+              });
+            }}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = '#f3f4f6';
               e.currentTarget.style.color = '#111827';
@@ -493,7 +614,7 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
                 )}
 
                 {/* Dialogues */}
-                {scene.dialogues && scene.dialogues.length > 0 && (
+                {scene.dialogues && scene.dialogues.length > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                     {scene.dialogues.map((dialogue, index) => {
                       const isCurrentlyPlaying = getCurrentPlayingDialogue() === index;
@@ -557,6 +678,24 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
                         </div>
                       );
                     })}
+                  </div>
+                ) : (
+                  <div style={{
+                    textAlign: 'center',
+                    padding: '48px 24px',
+                    color: '#9ca3af'
+                  }}>
+                    <svg style={{ 
+                      width: '48px', 
+                      height: '48px', 
+                      margin: '0 auto 16px',
+                      color: '#d1d5db'
+                    }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                    <p style={{ fontSize: '16px', margin: 0 }}>
+                      此场景暂无对话
+                    </p>
                   </div>
                 )}
               </div>
