@@ -13,12 +13,6 @@
     "text_model": "deepseek-v3",
     "image_model": "gemini-2.5-flash-image"
   },
-  "qiniu": {
-    "access_key": "your-qiniu-access-key",
-    "secret_key": "your-qiniu-secret-key",
-    "bucket": "your-bucket-name",
-    "domain": "https://your-cdn-domain.com"
-  },
   "storage": {
     "output_dir": "./outputs"
   }

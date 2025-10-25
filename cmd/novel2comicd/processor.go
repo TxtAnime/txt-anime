@@ -15,17 +15,17 @@ import (
 
 // TaskProcessor 任务处理器
 type TaskProcessor struct {
-	db       *DB
-	uploader *QiniuUploader
-	config   *Config
+	db      *DB
+	baseURL string
+	config  *Config
 }
 
 // NewTaskProcessor 创建任务处理器
-func NewTaskProcessor(db *DB, uploader *QiniuUploader, config *Config) *TaskProcessor {
+func NewTaskProcessor(db *DB, baseURL string, config *Config) *TaskProcessor {
 	return &TaskProcessor{
-		db:       db,
-		uploader: uploader,
-		config:   config,
+		db:      db,
+		baseURL: baseURL,
+		config:  config,
 	}
 }
 
@@ -94,11 +94,11 @@ func (p *TaskProcessor) processTask(task *Task) error {
 		return fmt.Errorf("生成音频失败: %w", err)
 	}
 
-	// 5. 上传产物到七牛云并构建 scenes
-	log.Printf("  上传产物到七牛云...")
-	scenes, err := p.uploadAndBuildScenes(task.ID, scriptData, imagesDir, audiosDir)
+	// 5. 构建 scenes 数据（使用本地文件服务器 URL）
+	log.Printf("  构建产物 URL...")
+	scenes, err := p.buildScenes(task.ID, scriptData, imagesDir, audiosDir)
 	if err != nil {
-		return fmt.Errorf("上传产物失败: %w", err)
+		return fmt.Errorf("构建产物失败: %w", err)
 	}
 
 	// 6. 更新任务状态
@@ -183,33 +183,29 @@ func (p *TaskProcessor) generateAudios(scriptData *novel2script.Response, audios
 	return audiosync.Process(asScriptData, audiosDir, cfg)
 }
 
-// uploadAndBuildScenes 上传产物并构建 scenes 数据
-func (p *TaskProcessor) uploadAndBuildScenes(taskID string, scriptData *novel2script.Response, imagesDir, audiosDir string) ([]Scene, error) {
+// buildScenes 构建 scenes 数据（使用本地文件服务器 URL）
+func (p *TaskProcessor) buildScenes(taskID string, scriptData *novel2script.Response, imagesDir, audiosDir string) ([]Scene, error) {
 	var scenes []Scene
 
 	for _, scene := range scriptData.Script {
-		// 上传场景图片
-		imagePath := filepath.Join(imagesDir, fmt.Sprintf("scene_%03d.png", scene.SceneID))
-		imageKey := fmt.Sprintf("tasks/%s/scene_%03d.png", taskID, scene.SceneID)
-		imageURL, err := p.uploader.UploadFile(imagePath, imageKey)
-		if err != nil {
-			return nil, fmt.Errorf("上传场景 %d 图片失败: %w", scene.SceneID, err)
+		// 构建场景图片 URL
+		imageURL := fmt.Sprintf("%s/artifacts/%s/images/scene_%03d.png", p.baseURL, taskID, scene.SceneID)
+
+		// 构建旁白音频 URL
+		narrationVoiceURL := ""
+		narrationPath := filepath.Join(audiosDir, fmt.Sprintf("scene_%03d_narration.mp3", scene.SceneID))
+		if _, err := os.Stat(narrationPath); err == nil {
+			narrationVoiceURL = fmt.Sprintf("%s/artifacts/%s/audios/scene_%03d_narration.mp3", p.baseURL, taskID, scene.SceneID)
 		}
 
 		// 处理对话音频
 		var dialogues []Dialogue
 		for idx, dialogue := range scene.Dialogue {
-			// 上传音频
-			audioPath := filepath.Join(audiosDir, fmt.Sprintf("scene_%03d_dialogue_%03d.mp3", scene.SceneID, idx+1))
-			audioKey := fmt.Sprintf("tasks/%s/scene_%03d_dialogue_%03d.mp3", taskID, scene.SceneID, idx+1)
-
 			voiceURL := ""
 			// 检查音频文件是否存在（可能没有对话的场景）
+			audioPath := filepath.Join(audiosDir, fmt.Sprintf("scene_%03d_dialogue_%03d.mp3", scene.SceneID, idx+1))
 			if _, err := os.Stat(audioPath); err == nil {
-				voiceURL, err = p.uploader.UploadFile(audioPath, audioKey)
-				if err != nil {
-					return nil, fmt.Errorf("上传场景 %d 对话 %d 音频失败: %w", scene.SceneID, idx+1, err)
-				}
+				voiceURL = fmt.Sprintf("%s/artifacts/%s/audios/scene_%03d_dialogue_%03d.mp3", p.baseURL, taskID, scene.SceneID, idx+1)
 			}
 
 			dialogues = append(dialogues, Dialogue{
@@ -220,9 +216,10 @@ func (p *TaskProcessor) uploadAndBuildScenes(taskID string, scriptData *novel2sc
 		}
 
 		scenes = append(scenes, Scene{
-			ImageURL:  imageURL,
-			Narration: scene.Narration,
-			Dialogues: dialogues,
+			ImageURL:          imageURL,
+			Narration:         scene.Narration,
+			NarrationVoiceURL: narrationVoiceURL,
+			Dialogues:         dialogues,
 		})
 	}
 
@@ -257,6 +254,7 @@ func convertScenes(scenes []novel2script.Scene) []audiosync.Scene {
 			SceneID:           s.SceneID,
 			Location:          s.Location,
 			Characters:        s.CharactersPresent,
+			Narration:         s.Narration,
 			ActionDescription: s.ActionDescription,
 			Dialogue:          dialogues,
 		}

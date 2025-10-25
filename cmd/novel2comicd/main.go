@@ -31,19 +31,18 @@ func main() {
 	defer db.Close()
 	log.Println("✅ MongoDB 连接成功")
 
-	// 初始化七牛云上传器
-	log.Println("初始化七牛云上传器")
-	uploader := NewQiniuUploader(config.Qiniu)
-	log.Println("✅ 七牛云上传器初始化成功")
-
 	// 创建输出目录
 	if err := os.MkdirAll(config.Storage.OutputDir, 0o755); err != nil {
 		log.Fatalf("创建输出目录失败: %v", err)
 	}
 
+	// 构建服务器 base URL
+	baseURL := fmt.Sprintf("http://localhost:%d", config.Server.Port)
+	log.Printf("服务器 Base URL: %s", baseURL)
+
 	// 启动任务处理器
 	log.Println("启动后台任务处理器")
-	processor := NewTaskProcessor(db, uploader, config)
+	processor := NewTaskProcessor(db, baseURL, config)
 	processor.Start()
 	log.Println("✅ 后台任务处理器已启动")
 
@@ -57,13 +56,13 @@ func main() {
 			w.Header().Set("Access-Control-Allow-Origin", "*")
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-			
+
 			// 处理预检请求
 			if r.Method == http.MethodOptions {
 				w.WriteHeader(http.StatusOK)
 				return
 			}
-			
+
 			// 调用下一个处理器
 			next(w, r)
 		}
@@ -95,6 +94,9 @@ func main() {
 		}
 	}))
 
+	// 静态文件服务 - 提供生成的产物下载
+	http.Handle("/artifacts/", http.StripPrefix("/artifacts/", http.FileServer(http.Dir(config.Storage.OutputDir))))
+
 	// 健康检查端点
 	http.HandleFunc("/health", corsHandler(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -109,6 +111,7 @@ func main() {
 	log.Println("  GET    /v1/tasks/              - 获取任务列表")
 	log.Println("  GET    /v1/tasks/:id           - 获取任务")
 	log.Println("  GET    /v1/tasks/:id/artifacts - 获取任务产物")
+	log.Println("  GET    /artifacts/*            - 下载产物文件")
 	log.Println("  GET    /health                 - 健康检查")
 
 	// 设置信号处理

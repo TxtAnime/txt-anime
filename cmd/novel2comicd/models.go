@@ -15,9 +15,10 @@ type Task struct {
 
 // Scene 场景结构
 type Scene struct {
-	ImageURL  string     `bson:"image_url" json:"imageURL"`
-	Narration string     `bson:"narration" json:"narration"`
-	Dialogues []Dialogue `bson:"dialogues" json:"dialogues"`
+	ImageURL          string     `bson:"image_url" json:"imageURL"`
+	Narration         string     `bson:"narration" json:"narration"`
+	NarrationVoiceURL string     `bson:"narration_voice_url" json:"narrationVoiceURL"`
+	Dialogues         []Dialogue `bson:"dialogues" json:"dialogues"`
 }
 
 // Dialogue 对话结构
