@@ -27,6 +27,7 @@ type Scene struct {
 	Location           string         `json:"location"`
 	TimeOfDay          string         `json:"time_of_day"`
 	Characters         []string       `json:"characters"`
+	Narration          string         `json:"narration"`
 	ActionDescription  string         `json:"action_description"`
 	Dialogue           []DialogueLine `json:"dialogue"`
 	VisualDescription  string         `json:"visual_description"`
@@ -113,8 +114,8 @@ func Process(scriptData ScriptData, outputDir string, cfg Config) error {
 	}
 	fmt.Printf("✅ 共有 %d 种音色可用\n\n", len(voices))
 
-	// 为角色匹配音色
-	fmt.Println("🤖 为角色匹配音色...")
+	// 为角色（包括旁白）匹配音色
+	fmt.Println("🤖 为角色和旁白匹配音色...")
 	voiceMatches, err := matchVoicesForCharacters(scriptData, voices, cfg)
 	if err != nil {
 		fmt.Printf("⚠️  AI匹配失败: %v，使用规则匹配\n", err)
@@ -141,28 +142,72 @@ func Process(scriptData ScriptData, outputDir string, cfg Config) error {
 		fmt.Printf("⚠️  保存音色匹配信息失败: %v\n", err)
 	}
 
-	// 统计总对话数
+	// 统计总对话数和旁白数
 	totalDialogues := 0
+	totalNarrations := 0
 	for _, scene := range scriptData.Script {
 		totalDialogues += len(scene.Dialogue)
+		if scene.Narration != "" {
+			totalNarrations++
+		}
 	}
 
-	if totalDialogues == 0 {
-		fmt.Println("⚠️  没有找到对话，无需生成音频")
+	if totalDialogues == 0 && totalNarrations == 0 {
+		fmt.Println("⚠️  没有找到对话和旁白，无需生成音频")
 		return nil
 	}
+
+	fmt.Printf("📊 需要生成 %d 个对话音频和 %d 个旁白音频\n\n", totalDialogues, totalNarrations)
 
 	// 生成语音文件
 	fmt.Printf("🎙️  生成语音文件...\n")
 	currentIdx := 0
+	totalItems := totalDialogues + totalNarrations
+
 	for _, scene := range scriptData.Script {
+		// 1. 先生成旁白音频
+		if scene.Narration != "" {
+			currentIdx++
+
+			// 获取旁白音色
+			voiceType, ok := voiceMatches["旁白"]
+			if !ok {
+				// 如果没有匹配到旁白音色，使用默认音色
+				voiceType = "qiniu_zh_female_wwxkjx"
+			}
+
+			// 显示进度
+			narrationPreview := scene.Narration
+			if len(narrationPreview) > 40 {
+				narrationPreview = narrationPreview[:40] + "..."
+			}
+			fmt.Printf("[%d/%d] 场景%d - 旁白: %s\n",
+				currentIdx, totalItems, scene.SceneID, narrationPreview)
+
+			// 生成音频
+			audioData, err := generateAudio(scene.Narration, voiceType, cfg)
+			if err != nil {
+				fmt.Printf("  ❌ 生成失败: %v\n", err)
+			} else {
+				// 保存文件
+				filename := fmt.Sprintf("scene_%03d_narration.mp3", scene.SceneID)
+				filepath := filepath.Join(outputDir, filename)
+				if err := os.WriteFile(filepath, audioData, 0o644); err != nil {
+					fmt.Printf("  ❌ 保存失败: %v\n", err)
+				} else {
+					fmt.Printf("  ✅ 已保存: %s (%.1f KB)\n", filename, float64(len(audioData))/1024)
+				}
+			}
+		}
+
+		// 2. 再生成对话音频
 		for dialogueIdx, dialogue := range scene.Dialogue {
 			currentIdx++
 
 			// 获取角色对应的音色
 			voiceType, ok := voiceMatches[dialogue.Character]
 			if !ok {
-				voiceType = cfg.VoiceModel // 使用默认音色
+				voiceType = "qiniu_zh_female_wwxkjx" // 使用默认音色
 			}
 
 			// 显示进度
@@ -171,7 +216,7 @@ func Process(scriptData ScriptData, outputDir string, cfg Config) error {
 				linePreview = linePreview[:30] + "..."
 			}
 			fmt.Printf("[%d/%d] 场景%d - %s: %s\n",
-				currentIdx, totalDialogues, scene.SceneID, dialogue.Character, linePreview)
+				currentIdx, totalItems, scene.SceneID, dialogue.Character, linePreview)
 
 			// 生成音频
 			audioData, err := generateAudio(dialogue.Line, voiceType, cfg)
@@ -349,33 +394,43 @@ func matchVoicesForCharacters(scriptData ScriptData, voices []VoiceInfo, cfg Con
 func buildVoiceMatchPrompt(scriptData ScriptData, voices []VoiceInfo) string {
 	var sb strings.Builder
 
-	sb.WriteString("请根据角色描述和对话样本，为每个角色选择最合适的音色。\n\n")
+	sb.WriteString("请根据角色描述、旁白内容和对话样本，为每个角色和旁白选择最合适的音色。\n\n")
 
-	// 角色列表
+	// 角色列表（包括旁白）
 	sb.WriteString("## 角色列表\n\n")
+
+	// 添加旁白角色
+	sb.WriteString("**旁白**: 故事的叙述者，负责讲述场景和氛围\n\n")
+
+	// 其他角色
 	for char, desc := range scriptData.Characters {
 		sb.WriteString(fmt.Sprintf("**%s**: %s\n\n", char, desc))
 	}
 
-	// 对话样本（前3个场景）
-	sb.WriteString("## 对话样本\n\n")
+	// 场景和对话样本（前3个场景）
+	sb.WriteString("## 场景和对话样本\n\n")
 	sampleCount := 0
 	for _, scene := range scriptData.Script {
 		if sampleCount >= 3 {
 			break
 		}
-		if len(scene.Dialogue) > 0 {
-			sampleCount++
-			sb.WriteString(fmt.Sprintf("场景%d (%s, %s):\n", scene.SceneID, scene.Location, scene.EmotionalTone))
-			for _, dialogue := range scene.Dialogue {
-				emotion := ""
-				if dialogue.Emotion != "" {
-					emotion = fmt.Sprintf(" [%s]", dialogue.Emotion)
-				}
-				sb.WriteString(fmt.Sprintf("- %s%s: \"%s\"\n", dialogue.Character, emotion, truncateText(dialogue.Line, 50)))
-			}
-			sb.WriteString("\n")
+		sampleCount++
+		sb.WriteString(fmt.Sprintf("场景%d (%s):\n", scene.SceneID, scene.Location))
+
+		// 显示旁白
+		if scene.Narration != "" {
+			sb.WriteString(fmt.Sprintf("- [旁白]: \"%s\"\n", truncateText(scene.Narration, 60)))
 		}
+
+		// 显示对话
+		for _, dialogue := range scene.Dialogue {
+			emotion := ""
+			if dialogue.Emotion != "" {
+				emotion = fmt.Sprintf(" [%s]", dialogue.Emotion)
+			}
+			sb.WriteString(fmt.Sprintf("- %s%s: \"%s\"\n", dialogue.Character, emotion, truncateText(dialogue.Line, 50)))
+		}
+		sb.WriteString("\n")
 	}
 
 	// 可用音色列表
@@ -398,23 +453,26 @@ func buildVoiceMatchPrompt(scriptData ScriptData, voices []VoiceInfo) string {
 	}
 
 	sb.WriteString("\n## 选择标准\n\n")
-	sb.WriteString("1. 根据角色的年龄、性别、性格选择音色\n")
-	sb.WriteString("2. 儿童角色优先选择child类别的音色\n")
-	sb.WriteString("3. 机器人/AI角色可以选择磁性男声\n")
-	sb.WriteString("4. 确保每个角色使用不同的音色（如果可能）\n")
-	sb.WriteString("5. 考虑角色在对话中的情感表达\n\n")
+	sb.WriteString("1. **旁白**：优先选择中性的声音，并且符合故事的风格，比如动漫叙述者（自然、有代入感）：推荐 「温暖沉稳学长」（男） 或 「知性教学女教师」（女），比如项目想偏向轻松有趣的氛围，推荐 「校园清新学姐」 或 「率真校园向导」，比如偏幻想题材（带神秘感或史诗感），推荐 「磁性课件男声」\n")
+	sb.WriteString("2. 根据角色的年龄、性别、性格选择音色\n")
+	sb.WriteString("3. 儿童角色优先选择child类别的音色\n")
+	sb.WriteString("4. 机器人/AI角色可以选择磁性男声\n")
+	sb.WriteString("5. 确保每个角色使用不同的音色（如果可能）\n")
+	sb.WriteString("6. 考虑角色在对话中的情感表达\n\n")
 
 	sb.WriteString("## 输出格式\n\n")
-	sb.WriteString("严格按照以下JSON格式输出：\n")
+	sb.WriteString("严格按照以下JSON格式输出，**必须包含\"旁白\"作为key**：\n")
 	sb.WriteString("```json\n")
 	sb.WriteString("{\n")
 	sb.WriteString("  \"voice_matches\": {\n")
+	sb.WriteString("    \"旁白\": \"音色ID（必须包含）\",\n")
 	sb.WriteString("    \"角色名1\": \"音色ID1\",\n")
 	sb.WriteString("    \"角色名2\": \"音色ID2\"\n")
 	sb.WriteString("  },\n")
 	sb.WriteString("  \"reasoning\": \"选择理由的简短说明\"\n")
 	sb.WriteString("}\n")
 	sb.WriteString("```\n")
+	sb.WriteString("\n注意：voice_matches 中必须包含\"旁白\"作为第一个键值对。\n")
 
 	return sb.String()
 }
@@ -423,6 +481,10 @@ func buildVoiceMatchPrompt(scriptData ScriptData, voices []VoiceInfo) string {
 func simpleVoiceMatch(characters map[string]string) map[string]string {
 	matches := make(map[string]string)
 	usedVoices := make(map[string]bool)
+
+	// 首先为旁白选择音色
+	matches["旁白"] = "qiniu_zh_male_tyygjs" // 通用阳光讲师 - 适合旁白
+	usedVoices["qiniu_zh_male_tyygjs"] = true
 
 	for char, desc := range characters {
 		descLower := strings.ToLower(desc)
