@@ -7,7 +7,7 @@ import type { Task } from '../types';
 
 export const HomePage = () => {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const { setCurrentTask, tasks } = useTasks();
+  const { setCurrentTask } = useTasks();
   const navigate = useNavigate();
 
   const handleTaskCreated = (taskId: string) => {
@@ -57,41 +57,20 @@ export const HomePage = () => {
       </div>
 
       {/* Main Content */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px', marginBottom: '40px' }}>
-        <div style={{ gridColumn: 'span 2' }}>
-          <NovelUploadForm onTaskCreated={handleTaskCreated} />
-        </div>
-        
-        <div>
+      <div style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: '24px', alignItems: 'stretch' }}>
+        {/* Left Side - Projects */}
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
           <TaskDashboard 
             onTaskSelect={handleTaskSelect}
             selectedTask={selectedTask}
           />
         </div>
-      </div>
-
-      {/* Stats */}
-      {tasks.length > 0 && (
-        <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb' }}>
-          <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#111827', marginBottom: '16px', textAlign: 'center' }}>
-            Your Progress
-          </h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', textAlign: 'center' }}>
-            <div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#3b82f6' }}>{tasks.length}</div>
-              <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Total</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#f97316' }}>{tasks.filter(t => t.status === 'doing').length}</div>
-              <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Processing</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10b981' }}>{tasks.filter(t => t.status === 'done').length}</div>
-              <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Complete</div>
-            </div>
-          </div>
+        
+        {/* Right Side - Upload Form */}
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <NovelUploadForm onTaskCreated={handleTaskCreated} />
         </div>
-      )}
+      </div>
     </div>
   );
 };

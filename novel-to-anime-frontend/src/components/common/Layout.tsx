@@ -1,13 +1,11 @@
 import type { ReactNode } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 interface LayoutProps {
   children: ReactNode;
 }
 
 export const Layout = ({ children }: LayoutProps) => {
-  const location = useLocation();
-  const isHomePage = location.pathname === '/';
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
@@ -21,15 +19,7 @@ export const Layout = ({ children }: LayoutProps) => {
               <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827' }}>Novel to Anime</span>
             </Link>
             
-            {!isHomePage && (
-              <Link
-                to="/"
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', color: '#6b7280', textDecoration: 'none', borderRadius: '8px' }}
-              >
-                <span style={{ fontSize: '16px' }}>🏠</span>
-                <span>Home</span>
-              </Link>
-            )}
+
           </div>
         </div>
       </header>
