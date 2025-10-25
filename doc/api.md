@@ -50,7 +50,7 @@ GET /v1/tasks/:id/artifacts
 		{
 			imageURL: <string>,
 			narration: <string>,
-			voiceURL: <string>,
+			narrationVoiceURL: <string>,
 			dialogues: [
 				{
 					character: <string>,
@@ -68,7 +68,7 @@ GET /v1/tasks/:id/artifacts
 - scenes：场景列表
 	- imageURL：场景的图片url地址
 	- narration：场景的旁白
-	- voiceURL：场景的旁白的语音url地址
+	- narrationVoiceURL：场景的旁白的语音url地址
 	- dialogues：场景中的对话列表
     	- character：角色名称
     	- line：角色台词
