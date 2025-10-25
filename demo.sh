@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # txt-anime 完整流程演示脚本
-# 该脚本演示从小说文本到动漫素材（图片+语音）的完整流程
+# 该脚本演示从小说文本到动漫素材（剧本+图片+语音）的完整流程
 
 set -e  # 遇到错误立即退出
 
@@ -38,20 +38,21 @@ if [ ! -f "go.mod" ]; then
     exit 1
 fi
 
+# 创建 bin 和 outputs 目录
+mkdir -p bin
+mkdir -p outputs
+
 # 步骤1: 编译程序
 echo ""
 echo "🔨 步骤1: 编译程序..."
 echo "  - 编译 novel2script (步骤一+二)"
-go build -o novel2script ./cmd/novel2script
+go build -o bin/novel2script ./cmd/novel2script
 
 echo "  - 编译 storyboard (步骤三)"
-go build -o storyboard ./cmd/storyboard
+go build -o bin/storyboard ./cmd/storyboard
 
 echo "  - 编译 audiosync (步骤四)"
-go build -o audiosync ./cmd/audiosync
-
-echo "  - 编译 finalassembly (步骤五)"
-go build -o finalassembly ./cmd/finalassembly
+go build -o bin/audiosync ./cmd/audiosync
 
 echo "✅ 编译完成"
 
@@ -84,10 +85,13 @@ if [ -n "$1" ]; then
     
     echo "✅ 使用用户指定的小说: $INPUT_FILE"
     DEMO_FILE="$INPUT_FILE"
+    # 提取文件名（不含扩展名）作为小说名
+    NOVEL_NAME=$(basename "$INPUT_FILE" .txt)
     USE_CUSTOM_FILE=true
 else
     # 使用内置示例
     DEMO_FILE="demo-story.txt"
+    NOVEL_NAME="demo-story"
     cat > "$DEMO_FILE" << 'EOF'
 《机器人与小女孩》
 
@@ -112,13 +116,19 @@ EOF
     USE_CUSTOM_FILE=false
 fi
 
+# 创建输出目录（小说名-随机字符串）
+RANDOM_STR=$(openssl rand -hex 4)
+OUTPUT_DIR="outputs/${NOVEL_NAME}-${RANDOM_STR}"
+mkdir -p "$OUTPUT_DIR"
+echo "📁 输出目录: $OUTPUT_DIR"
+
 # 步骤3: 生成剧本和角色
 echo ""
 echo "🎬 步骤3: 生成剧本和角色 (步骤一+二)..."
-SCRIPT_FILE="demo-script.json"
+SCRIPT_FILE="$OUTPUT_DIR/script.json"
 echo "  输入: $DEMO_FILE"
 echo "  输出: $SCRIPT_FILE"
-./novel2script -input "$DEMO_FILE" -output "$SCRIPT_FILE"
+./bin/novel2script -input "$DEMO_FILE" -output "$SCRIPT_FILE"
 
 # 统计场景和角色
 SCENE_COUNT=$(jq '.script | length' "$SCRIPT_FILE")
@@ -128,10 +138,10 @@ echo "✅ 已生成 $SCENE_COUNT 个场景, $CHAR_COUNT 个角色"
 # 步骤4: 生成分镜图片
 echo ""
 echo "🎨 步骤4: 生成分镜图片 (步骤三)..."
-STORYBOARD_DIR="demo-storyboard"
+STORYBOARD_DIR="$OUTPUT_DIR/images"
 echo "  输入: $SCRIPT_FILE"
 echo "  输出: $STORYBOARD_DIR/"
-./storyboard -input "$SCRIPT_FILE" -output "$STORYBOARD_DIR"
+./bin/storyboard -input "$SCRIPT_FILE" -output "$STORYBOARD_DIR"
 
 # 统计图片
 IMAGE_COUNT=$(ls "$STORYBOARD_DIR"/*.png 2>/dev/null | wc -l)
@@ -140,26 +150,16 @@ echo "✅ 已生成 $IMAGE_COUNT 张图片"
 # 步骤5: 生成语音
 echo ""
 echo "🎤 步骤5: 生成角色语音 (步骤四)..."
-AUDIO_DIR="demo-audio"
+AUDIO_DIR="$OUTPUT_DIR/audios"
 echo "  输入: $SCRIPT_FILE"
 echo "  输出: $AUDIO_DIR/"
-./audiosync -input "$SCRIPT_FILE" -output "$AUDIO_DIR"
+./bin/audiosync -input "$SCRIPT_FILE" -output "$AUDIO_DIR"
 
 # 统计音频
 AUDIO_COUNT=$(ls "$AUDIO_DIR"/*.mp3 2>/dev/null | wc -l)
 echo "✅ 已生成 $AUDIO_COUNT 个语音文件"
 
-# 步骤6: 合成最终视频
-echo ""
-echo "🎞️  步骤6: 合成最终视频 (步骤五)..."
-OUTPUT_VIDEO="demo-final.mp4"
-echo "  输入: $SCRIPT_FILE, $STORYBOARD_DIR/, $AUDIO_DIR/"
-echo "  输出: $OUTPUT_VIDEO"
-./finalassembly -input "$SCRIPT_FILE" -images "$STORYBOARD_DIR" -audio "$AUDIO_DIR" -output "$OUTPUT_VIDEO"
-
-echo "✅ 视频生成完成"
-
-# 步骤7: 展示结果
+# 步骤6: 展示结果
 echo ""
 echo "=========================================="
 echo "  🎉 演示完成！"
@@ -170,19 +170,17 @@ echo "  - 场景数: $SCENE_COUNT"
 echo "  - 角色数: $CHAR_COUNT"
 echo "  - 图片数: $IMAGE_COUNT"
 echo "  - 音频数: $AUDIO_COUNT"
-echo "  - 最终视频: $OUTPUT_VIDEO"
 echo ""
-echo "📁 生成的文件:"
+echo "📁 输出目录:"
+echo "  - 主目录: $OUTPUT_DIR/"
 echo "  - 剧本JSON: $SCRIPT_FILE"
 echo "  - 分镜图片: $STORYBOARD_DIR/"
 echo "  - 角色语音: $AUDIO_DIR/"
-echo "  - 最终视频: $OUTPUT_VIDEO"
 echo ""
 echo "💡 查看结果:"
 echo "  - 查看JSON: cat $SCRIPT_FILE | jq '.'"
 echo "  - 查看图片: open $STORYBOARD_DIR/"
-echo "  - 播放音频: afplay $AUDIO_DIR/scene_001_dialogue_001.mp3"
-echo "  - 播放视频: open $OUTPUT_VIDEO"
+echo "  - 播放音频: afplay $AUDIO_DIR/scene_001_dialogue_001.mp3 (如果有对话)"
 echo ""
 
 # 询问是否清理
@@ -199,18 +197,8 @@ if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
         echo "  - 保留用户小说文件: $DEMO_FILE"
     fi
     
-    rm -f "$SCRIPT_FILE"
-    echo "  - 已删除剧本JSON"
-    
-    rm -rf "$STORYBOARD_DIR"
-    echo "  - 已删除分镜图片"
-    
-    rm -rf "$AUDIO_DIR"
-    echo "  - 已删除语音文件"
-    
-    rm -f "$OUTPUT_VIDEO"
-    rm -rf temp_video_segments
-    echo "  - 已删除最终视频"
+    rm -rf "$OUTPUT_DIR"
+    echo "  - 已删除输出目录: $OUTPUT_DIR"
     
     echo "✅ 清理完成"
 else

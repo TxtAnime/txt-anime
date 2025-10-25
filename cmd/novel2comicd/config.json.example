@@ -10,7 +10,7 @@
   "ai": {
     "base_url": "https://openai.qiniu.com/v1",
     "api_key": "your-api-key-here",
-    "text_model": "deepseek-v3",
+    "text_model": "deepseek/deepseek-v3.1-terminus",
     "image_model": "gemini-2.5-flash-image"
   },
   "storage": {

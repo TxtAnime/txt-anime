@@ -76,20 +76,31 @@ func (p *TaskProcessor) processTask(task *Task) error {
 
 	// 2. novel2script: 生成剧本
 	log.Printf("  [1/3] 生成剧本...")
+	p.updateStatusDesc(task.ID, "剧本生成中...")
 	scriptData, err := p.generateScript(task.Novel)
 	if err != nil {
 		return fmt.Errorf("生成剧本失败: %w", err)
 	}
 	log.Printf("  生成了 %d 个场景, %d 个角色", len(scriptData.Script), len(scriptData.Characters))
 
+	// 保存剧本到文件用于调试
+	scriptFile := filepath.Join(taskDir, "script.json")
+	if err := saveScriptToFile(scriptData, scriptFile); err != nil {
+		log.Printf("  ⚠️  保存剧本文件失败: %v", err)
+	} else {
+		log.Printf("  已保存剧本到: %s", scriptFile)
+	}
+
 	// 3. storyboard: 生成场景图片
 	log.Printf("  [2/3] 生成场景图片...")
+	p.updateStatusDesc(task.ID, "场景图片生成中...")
 	if err := p.generateImages(scriptData, imagesDir); err != nil {
 		return fmt.Errorf("生成图片失败: %w", err)
 	}
 
 	// 4. audiosync: 生成音频
 	log.Printf("  [3/3] 生成音频...")
+	p.updateStatusDesc(task.ID, "场景对话生成中...")
 	if err := p.generateAudios(scriptData, audiosDir); err != nil {
 		return fmt.Errorf("生成音频失败: %w", err)
 	}
@@ -104,6 +115,7 @@ func (p *TaskProcessor) processTask(task *Task) error {
 	// 6. 更新任务状态
 	task.Scenes = scenes
 	task.Status = "done"
+	task.StatusDesc = "完成"
 	task.UpdatedAt = time.Now()
 
 	if err := p.db.UpdateTask(task); err != nil {
@@ -138,14 +150,7 @@ func (p *TaskProcessor) generateImages(scriptData *novel2script.Response, images
 		log.Printf("    生成场景 %d 图片...", scene.SceneID)
 
 		// 转换为 storyboard.Scene 类型
-		sbScene := storyboard.Scene{
-			SceneID:           scene.SceneID,
-			Location:          scene.Location,
-			CharactersPresent: scene.CharactersPresent,
-			Narration:         scene.Narration,
-			Dialogue:          convertDialogues(scene.Dialogue),
-			ActionDescription: scene.ActionDescription,
-		}
+		sbScene := convertToStoryboardScene(scene, scriptData.Characters)
 
 		imageData, err := storyboard.GenerateImage(sbScene, scriptData.Characters, cfg)
 		if err != nil {
@@ -217,7 +222,7 @@ func (p *TaskProcessor) buildScenes(taskID string, scriptData *novel2script.Resp
 
 		scenes = append(scenes, Scene{
 			ImageURL:          imageURL,
-			Narration:         scene.Narration,
+			Narration:         scene.NarrationVO,
 			NarrationVoiceURL: narrationVoiceURL,
 			Dialogues:         dialogues,
 		})
@@ -226,16 +231,25 @@ func (p *TaskProcessor) buildScenes(taskID string, scriptData *novel2script.Resp
 	return scenes, nil
 }
 
-// convertDialogues 转换对话格式
-func convertDialogues(dialogues []novel2script.DialogueLine) []storyboard.DialogueLine {
-	result := make([]storyboard.DialogueLine, len(dialogues))
-	for i, d := range dialogues {
-		result[i] = storyboard.DialogueLine{
+// convertToStoryboardScene 转换场景格式为 storyboard 需要的格式
+func convertToStoryboardScene(scene novel2script.Scene, characters map[string]string) storyboard.Scene {
+	var dialogues []storyboard.DialogueLine
+	for _, d := range scene.Dialogue {
+		dialogues = append(dialogues, storyboard.DialogueLine{
 			Character: d.Character,
 			Line:      d.Line,
-		}
+		})
 	}
-	return result
+
+	return storyboard.Scene{
+		SceneID:           scene.SceneID,
+		Location:          scene.Location,
+		TimeOfDay:         scene.TimeOfDay,
+		CharactersPresent: scene.CharactersPresent,
+		SceneDescription:  scene.SceneDescription,
+		Dialogue:          dialogues,
+		NarrationVO:       scene.NarrationVO,
+	}
 }
 
 // convertScenes 转换场景格式为 audiosync 需要的格式
@@ -251,12 +265,13 @@ func convertScenes(scenes []novel2script.Scene) []audiosync.Scene {
 		}
 
 		result[i] = audiosync.Scene{
-			SceneID:           s.SceneID,
-			Location:          s.Location,
-			Characters:        s.CharactersPresent,
-			Narration:         s.Narration,
-			ActionDescription: s.ActionDescription,
-			Dialogue:          dialogues,
+			SceneID:          s.SceneID,
+			Location:         s.Location,
+			TimeOfDay:        s.TimeOfDay,
+			Characters:       s.CharactersPresent,
+			SceneDescription: s.SceneDescription,
+			Dialogue:         dialogues,
+			NarrationVO:      s.NarrationVO,
 		}
 	}
 	return result
@@ -269,4 +284,11 @@ func saveScriptToFile(scriptData *novel2script.Response, filepath string) error 
 		return err
 	}
 	return os.WriteFile(filepath, data, 0o644)
+}
+
+// updateStatusDesc 更新任务的状态描述
+func (p *TaskProcessor) updateStatusDesc(taskID, statusDesc string) {
+	if err := p.db.UpdateTaskStatusDesc(taskID, statusDesc); err != nil {
+		log.Printf("  ⚠️  更新状态描述失败: %v", err)
+	}
 }

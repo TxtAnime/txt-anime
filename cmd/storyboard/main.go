@@ -57,7 +57,7 @@ func main() {
 	// 为每个场景生成图片
 	for i, scene := range scriptData.Script {
 		fmt.Printf("[%d/%d] 生成场景 %d: %s\n", i+1, len(scriptData.Script), scene.SceneID, scene.Location)
-		fmt.Printf("  场景: %s\n", truncateForDisplay(scene.ActionDescription, 60))
+		fmt.Printf("  场景: %s\n", truncateForDisplay(scene.SceneDescription, 60))
 
 		// 生成图片
 		imageData, err := storyboard.GenerateImage(scene, scriptData.Characters, cfg)
