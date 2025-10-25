@@ -27,6 +27,7 @@ type Scene struct {
 	Location           string         `json:"location"`
 	TimeOfDay          string         `json:"time_of_day"`
 	Characters         []string       `json:"characters"`
+	Narration          string         `json:"narration"`
 	ActionDescription  string         `json:"action_description"`
 	Dialogue           []DialogueLine `json:"dialogue"`
 	VisualDescription  string         `json:"visual_description"`
@@ -132,6 +133,11 @@ func Process(scriptData ScriptData, outputDir string, cfg Config) error {
 		}
 		fmt.Printf("  - %s: %s (%s)\n", char, voiceName, voiceType)
 	}
+	
+	// 旁白使用固定音色
+	narrationVoice := "qiniu_zh_female_zxjxnjs" // 知性教学女教师
+	narrationVoiceName := "知性教学女教师"
+	fmt.Printf("  - 旁白: %s (%s)\n", narrationVoiceName, narrationVoice)
 	fmt.Println()
 
 	// 保存音色匹配信息
@@ -141,21 +147,56 @@ func Process(scriptData ScriptData, outputDir string, cfg Config) error {
 		fmt.Printf("⚠️  保存音色匹配信息失败: %v\n", err)
 	}
 
-	// 统计总对话数
+	// 统计总对话数和旁白数
 	totalDialogues := 0
+	totalNarrations := 0
 	for _, scene := range scriptData.Script {
 		totalDialogues += len(scene.Dialogue)
+		if strings.TrimSpace(scene.Narration) != "" {
+			totalNarrations++
+		}
 	}
 
-	if totalDialogues == 0 {
-		fmt.Println("⚠️  没有找到对话，无需生成音频")
+	totalAudios := totalDialogues + totalNarrations
+	if totalAudios == 0 {
+		fmt.Println("⚠️  没有找到对话或旁白，无需生成音频")
 		return nil
 	}
 
 	// 生成语音文件
-	fmt.Printf("🎙️  生成语音文件...\n")
+	fmt.Printf("🎙️  生成语音文件 (对话: %d, 旁白: %d)...\n", totalDialogues, totalNarrations)
 	currentIdx := 0
+	
 	for _, scene := range scriptData.Script {
+		// 生成旁白音频
+		if strings.TrimSpace(scene.Narration) != "" {
+			currentIdx++
+			
+			// 显示进度
+			narrationPreview := scene.Narration
+			if len(narrationPreview) > 30 {
+				narrationPreview = narrationPreview[:30] + "..."
+			}
+			fmt.Printf("[%d/%d] 场景%d - 旁白: %s\n",
+				currentIdx, totalAudios, scene.SceneID, narrationPreview)
+
+			// 生成旁白音频
+			audioData, err := generateAudio(scene.Narration, narrationVoice, cfg)
+			if err != nil {
+				fmt.Printf("  ❌ 生成失败: %v\n", err)
+			} else {
+				// 保存文件
+				filename := fmt.Sprintf("scene_%03d_narration.mp3", scene.SceneID)
+				filepath := filepath.Join(outputDir, filename)
+				if err := os.WriteFile(filepath, audioData, 0o644); err != nil {
+					fmt.Printf("  ❌ 保存失败: %v\n", err)
+				} else {
+					fmt.Printf("  ✅ 已保存: %s (%.1f KB)\n", filename, float64(len(audioData))/1024)
+				}
+			}
+		}
+		
+		// 生成对话音频
 		for dialogueIdx, dialogue := range scene.Dialogue {
 			currentIdx++
 
@@ -171,7 +212,7 @@ func Process(scriptData ScriptData, outputDir string, cfg Config) error {
 				linePreview = linePreview[:30] + "..."
 			}
 			fmt.Printf("[%d/%d] 场景%d - %s: %s\n",
-				currentIdx, totalDialogues, scene.SceneID, dialogue.Character, linePreview)
+				currentIdx, totalAudios, scene.SceneID, dialogue.Character, linePreview)
 
 			// 生成音频
 			audioData, err := generateAudio(dialogue.Line, voiceType, cfg)

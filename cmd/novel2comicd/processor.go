@@ -196,6 +196,17 @@ func (p *TaskProcessor) uploadAndBuildScenes(taskID string, scriptData *novel2sc
 			return nil, fmt.Errorf("上传场景 %d 图片失败: %w", scene.SceneID, err)
 		}
 
+		// 处理旁白音频
+		narrationVoiceURL := ""
+		narrationAudioPath := filepath.Join(audiosDir, fmt.Sprintf("scene_%03d_narration.mp3", scene.SceneID))
+		if _, err := os.Stat(narrationAudioPath); err == nil {
+			narrationAudioKey := fmt.Sprintf("tasks/%s/scene_%03d_narration.mp3", taskID, scene.SceneID)
+			narrationVoiceURL, err = p.uploader.UploadFile(narrationAudioPath, narrationAudioKey)
+			if err != nil {
+				return nil, fmt.Errorf("上传场景 %d 旁白音频失败: %w", scene.SceneID, err)
+			}
+		}
+
 		// 处理对话音频
 		var dialogues []Dialogue
 		for idx, dialogue := range scene.Dialogue {
@@ -220,9 +231,10 @@ func (p *TaskProcessor) uploadAndBuildScenes(taskID string, scriptData *novel2sc
 		}
 
 		scenes = append(scenes, Scene{
-			ImageURL:  imageURL,
-			Narration: scene.Narration,
-			Dialogues: dialogues,
+			ImageURL:          imageURL,
+			Narration:         scene.Narration,
+			NarrationVoiceURL: narrationVoiceURL,
+			Dialogues:         dialogues,
 		})
 	}
 
@@ -257,6 +269,7 @@ func convertScenes(scenes []novel2script.Scene) []audiosync.Scene {
 			SceneID:           s.SceneID,
 			Location:          s.Location,
 			Characters:        s.CharactersPresent,
+			Narration:         s.Narration,
 			ActionDescription: s.ActionDescription,
 			Dialogue:          dialogues,
 		}

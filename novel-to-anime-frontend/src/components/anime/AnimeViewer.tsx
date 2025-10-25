@@ -24,7 +24,7 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
     goToScene
   } = useAnime();
   
-  const { toggleDialogue, isDialoguePlaying } = useAudioPlayer();
+  const { toggleDialogue, playNarration, isDialoguePlaying, playerState } = useAudioPlayer();
   const { currentTask } = useTasks();
 
   // Load anime data when component mounts or taskId changes
@@ -61,10 +61,15 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
     }
   };
 
-  const handleNarrationClick = async (narration: string) => {
-    // For now, narration doesn't have audio URL in the API
-    // This could be extended in the future
-    console.log('Narration clicked:', narration);
+  const handleNarrationClick = async () => {
+    const scene = getCurrentScene();
+    if (scene?.narrationVoiceURL) {
+      try {
+        await playNarration(scene.narrationVoiceURL, currentScene);
+      } catch (error) {
+        console.error('Failed to play narration:', error);
+      }
+    }
   };
 
   const getCurrentPlayingDialogue = () => {
@@ -586,30 +591,56 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
                 {/* Narration */}
                 {scene.narration && (
                   <div style={{ marginBottom: '48px' }}>
-                    <p 
+                    <div
                       style={{
+                        cursor: scene.narrationVoiceURL ? 'pointer' : 'default',
+                        padding: '16px',
+                        borderRadius: '12px',
+                        transition: 'all 0.2s ease',
+                        backgroundColor: playerState.currentlyPlaying === `narration-${currentScene}` && playerState.isPlaying ? '#eff6ff' : 'transparent',
+                        border: playerState.currentlyPlaying === `narration-${currentScene}` && playerState.isPlaying ? '2px solid #3b82f6' : '2px solid transparent'
+                      }}
+                      onClick={scene.narrationVoiceURL ? handleNarrationClick : undefined}
+                      title={scene.narrationVoiceURL ? "点击播放旁白" : ""}
+                      onMouseEnter={(e) => {
+                        if (scene.narrationVoiceURL && !(playerState.currentlyPlaying === `narration-${currentScene}` && playerState.isPlaying)) {
+                          e.currentTarget.style.backgroundColor = '#f9fafb';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!(playerState.currentlyPlaying === `narration-${currentScene}` && playerState.isPlaying)) {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }
+                      }}
+                    >
+                      {scene.narrationVoiceURL && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                          {(playerState.currentlyPlaying === `narration-${currentScene}` && playerState.isPlaying) ? (
+                            <svg style={{ width: '16px', height: '16px', color: '#3b82f6' }} fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                          ) : (
+                            <svg style={{ width: '16px', height: '16px', color: '#9ca3af' }} fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                          <span style={{ fontSize: '12px', color: '#6b7280' }}>
+                            点击播放旁白
+                          </span>
+                        </div>
+                      )}
+                      <p style={{
                         fontSize: '18px',
                         lineHeight: '1.8',
                         color: '#1f2937',
-                        cursor: 'pointer',
-                        padding: '16px',
-                        borderRadius: '12px',
-                        transition: 'background-color 0.2s ease',
+                        margin: 0,
                         fontFamily: '"Noto Serif SC", "Times New Roman", serif',
                         textAlign: 'justify',
                         letterSpacing: '0.05em'
-                      }}
-                      onClick={() => handleNarrationClick(scene.narration)}
-                      title="点击播放旁白"
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#f9fafb';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                      }}
-                    >
-                      {scene.narration}
-                    </p>
+                      }}>
+                        {scene.narration}
+                      </p>
+                    </div>
                   </div>
                 )}
 

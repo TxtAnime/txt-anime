@@ -15,6 +15,7 @@ export interface Dialogue {
 export interface AnimeScene {
   imageURL: string; // URL to image file
   narration: string;
+  narrationVoiceURL: string; // URL to narration audio file
   dialogues: Dialogue[];
 }
 

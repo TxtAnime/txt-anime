@@ -4,18 +4,28 @@ interface AnimeSceneProps {
   scene: AnimeSceneType;
   sceneIndex: number;
   onDialogueClick?: (dialogue: Dialogue, dialogueIndex: number) => void;
+  onNarrationClick?: () => void;
   playingDialogueIndex?: number;
+  isNarrationPlaying?: boolean;
 }
 
 export const AnimeScene = ({ 
   scene, 
   sceneIndex, 
   onDialogueClick,
-  playingDialogueIndex 
+  onNarrationClick,
+  playingDialogueIndex,
+  isNarrationPlaying 
 }: AnimeSceneProps) => {
   const handleDialogueClick = (dialogue: Dialogue, index: number) => {
     if (onDialogueClick) {
       onDialogueClick(dialogue, index);
+    }
+  };
+
+  const handleNarrationClick = () => {
+    if (onNarrationClick) {
+      onNarrationClick();
     }
   };
 
@@ -59,9 +69,38 @@ export const AnimeScene = ({
             <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">
               Narration
             </h3>
-            <p className="text-gray-800 leading-relaxed italic">
-              {scene.narration}
-            </p>
+            <div 
+              onClick={scene.narrationVoiceURL ? handleNarrationClick : undefined}
+              className={`${
+                scene.narrationVoiceURL 
+                  ? `cursor-pointer p-3 rounded-lg border transition-all duration-200 ${
+                      isNarrationPlaying
+                        ? 'border-blue-500 bg-blue-50 shadow-md'
+                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    }`
+                  : ''
+              }`}
+            >
+              {scene.narrationVoiceURL && (
+                <div className="flex items-center space-x-2 mb-2">
+                  {isNarrationPlaying ? (
+                    <svg className="h-5 w-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  ) : (
+                    <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                  <span className="text-xs text-gray-500">
+                    Click to play narration
+                  </span>
+                </div>
+              )}
+              <p className="text-gray-800 leading-relaxed italic">
+                {scene.narration}
+              </p>
+            </div>
           </div>
         )}
 
