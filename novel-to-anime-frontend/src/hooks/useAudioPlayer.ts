@@ -12,6 +12,25 @@ export const useAudioPlayer = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const autoPlayQueue = useRef<string[]>([]);
   const currentAutoPlayIndex = useRef<number>(-1);
+  const userInteracted = useRef<boolean>(false);
+
+  // Track user interaction
+  useEffect(() => {
+    const handleUserInteraction = () => {
+      userInteracted.current = true;
+      console.log('User interaction detected, audio playback should now be allowed');
+    };
+
+    document.addEventListener('click', handleUserInteraction, { once: true });
+    document.addEventListener('touchstart', handleUserInteraction, { once: true });
+    document.addEventListener('keydown', handleUserInteraction, { once: true });
+
+    return () => {
+      document.removeEventListener('click', handleUserInteraction);
+      document.removeEventListener('touchstart', handleUserInteraction);
+      document.removeEventListener('keydown', handleUserInteraction);
+    };
+  }, []);
 
   // Clean up audio resources
   const cleanup = useCallback(() => {
@@ -27,28 +46,71 @@ export const useAudioPlayer = () => {
     dialogueId: string
   ) => {
     try {
+      console.log('Attempting to play audio:', { audioUrl, dialogueId });
+      console.log('User interaction detected:', userInteracted.current);
+      
+      // Check if user has interacted with the page
+      if (!userInteracted.current) {
+        console.warn('No user interaction detected, audio may be blocked by browser');
+      }
+      
       // Stop current audio if playing
       if (audioRef.current) {
         cleanup();
       }
 
+      // Validate audio URL
+      if (!audioUrl || typeof audioUrl !== 'string') {
+        throw new Error('Invalid audio URL');
+      }
+
       // Create new audio element
-      const audio = new Audio(audioUrl);
+      const audio = new Audio();
       audioRef.current = audio;
       
       // Set volume
       audio.volume = playerState.volume;
 
-      // Set up event listeners
+      // Set up event listeners before setting src
       audio.addEventListener('loadstart', () => {
+        console.log('Audio loading started for:', audioUrl);
         setPlayerState(prev => ({
           ...prev,
           currentlyPlaying: dialogueId,
+          isPlaying: false, // Set to false until actually playing
+        }));
+      });
+
+      audio.addEventListener('loadedmetadata', () => {
+        console.log('Audio metadata loaded, duration:', audio.duration);
+      });
+
+      audio.addEventListener('canplay', () => {
+        console.log('Audio can play, ready state:', audio.readyState);
+      });
+
+      audio.addEventListener('canplaythrough', () => {
+        console.log('Audio can play through');
+      });
+
+      audio.addEventListener('play', () => {
+        console.log('Audio started playing');
+        setPlayerState(prev => ({
+          ...prev,
           isPlaying: true,
         }));
       });
 
+      audio.addEventListener('pause', () => {
+        console.log('Audio paused');
+        setPlayerState(prev => ({
+          ...prev,
+          isPlaying: false,
+        }));
+      });
+
       audio.addEventListener('ended', () => {
+        console.log('Audio ended');
         setPlayerState(prev => ({
           ...prev,
           currentlyPlaying: null,
@@ -60,8 +122,37 @@ export const useAudioPlayer = () => {
         playNextInQueue();
       });
 
-      audio.addEventListener('error', (error) => {
-        console.error('Audio playback error:', error);
+      audio.addEventListener('error', (event) => {
+        const error = (event.target as HTMLAudioElement).error;
+        console.error('Audio playback error:', {
+          code: error?.code,
+          message: error?.message,
+          url: audioUrl,
+          networkState: audio.networkState,
+          readyState: audio.readyState
+        });
+        
+        // Show user-friendly error message
+        let errorMessage = 'Audio playback failed';
+        if (error) {
+          switch (error.code) {
+            case MediaError.MEDIA_ERR_ABORTED:
+              errorMessage = 'Audio playback was aborted';
+              break;
+            case MediaError.MEDIA_ERR_NETWORK:
+              errorMessage = 'Network error while loading audio';
+              break;
+            case MediaError.MEDIA_ERR_DECODE:
+              errorMessage = 'Audio format not supported';
+              break;
+            case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+              errorMessage = 'Audio source not supported';
+              break;
+          }
+        }
+        
+        console.error('Showing error to user:', errorMessage);
+        
         setPlayerState(prev => ({
           ...prev,
           currentlyPlaying: null,
@@ -70,10 +161,54 @@ export const useAudioPlayer = () => {
         cleanup();
       });
 
+      audio.addEventListener('stalled', () => {
+        console.warn('Audio loading stalled');
+      });
+
+      audio.addEventListener('suspend', () => {
+        console.log('Audio loading suspended');
+      });
+
+      audio.addEventListener('waiting', () => {
+        console.log('Audio waiting for data');
+      });
+
+      // Set the audio source
+      audio.src = audioUrl;
+      
+      // Load the audio
+      audio.load();
+
       // Start playback
-      await audio.play();
+      console.log('Starting audio playback...');
+      console.log('Audio ready state before play:', audio.readyState);
+      console.log('Audio network state before play:', audio.networkState);
+      
+      const playPromise = audio.play();
+      console.log('Audio play() promise created');
+      
+      await playPromise;
+      console.log('Audio playback started successfully');
+      console.log('Audio ready state after play:', audio.readyState);
+      console.log('Audio network state after play:', audio.networkState);
+      
     } catch (error) {
       console.error('Failed to play audio:', error);
+      
+      // Handle specific browser errors
+      let errorMessage = 'Failed to play audio';
+      if (error instanceof Error) {
+        if (error.name === 'NotAllowedError') {
+          errorMessage = 'Audio playback blocked by browser. Please interact with the page first.';
+        } else if (error.name === 'NotSupportedError') {
+          errorMessage = 'Audio format not supported by your browser';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      alert(errorMessage);
+      
       setPlayerState(prev => ({
         ...prev,
         currentlyPlaying: null,

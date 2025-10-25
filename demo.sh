@@ -219,4 +219,3 @@ fi
 
 echo ""
 echo "感谢使用 txt-anime! 🚀"
-

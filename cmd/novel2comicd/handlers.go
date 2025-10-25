@@ -59,7 +59,7 @@ func (h *Handler) CreateTask(w http.ResponseWriter, r *http.Request) {
 		Name:      req.Name,
 		Novel:     req.Novel,
 		Status:    "doing",
-		Scenes:    []Scene{},
+		Scenes:    make([]Scene, 0), // 确保初始化为空数组而不是nil
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
@@ -143,8 +143,12 @@ func (h *Handler) GetArtifacts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 返回产物
+	scenes := task.Scenes
+	if scenes == nil {
+		scenes = make([]Scene, 0) // 确保返回空数组而不是null
+	}
 	resp := GetArtifactsResponse{
-		Scenes: task.Scenes,
+		Scenes: scenes,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)

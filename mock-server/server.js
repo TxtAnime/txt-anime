@@ -15,8 +15,8 @@ const tasks = new Map();
 // Mock base64 image (just the base64 part without data: prefix)
 const mockImage = 'PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM2MzY2ZjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM4YjVjZjYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2cpIi8+PGNpcmNsZSBjeD0iMjAwIiBjeT0iMTUwIiByPSI1MCIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjMpIi8+PGNpcmNsZSBjeD0iMTAwIiBjeT0iMjAwIiByPSIzMCIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjIpIi8+PGNpcmNsZSBjeD0iMzAwIiBjeT0iMTAwIiByPSI0MCIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjI1KSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+U2NlbmUgSW1hZ2U8L3RleHQ+PC9zdmc+';
 
-// Mock base64 audio (small WAV file)
-const mockAudio = 'UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT';
+// Mock base64 audio (minimal WAV file - 1 second of silence)
+const mockAudio = 'UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
 
 // Generate mock scenes
 function generateMockScenes(novelText) {
@@ -31,12 +31,12 @@ function generateMockScenes(novelText) {
         {
           character: "奶奶",
           line: `欢迎回家，我的宝贝！快进来，我给你准备了你最爱吃的。`,
-          voiceURL: `data:audio/wav;base64,${mockAudio}`
+          voiceURL: `http://localhost:3001/audio/sample.wav`
         },
         {
           character: "小明",
           line: `奶奶！我好想你！这里的味道还是和以前一样温暖。`,
-          voiceURL: `data:audio/wav;base64,${mockAudio}`
+          voiceURL: `http://localhost:3001/audio/sample.wav`
         }
       ]
     };
@@ -46,7 +46,7 @@ function generateMockScenes(novelText) {
       scene.dialogues.push({
         character: "旁白",
         line: `温暖的阳光透过窗户洒进来，一切都显得那么美好和宁静。`,
-        voiceURL: `data:audio/wav;base64,${mockAudio}`
+        voiceURL: `http://localhost:3001/audio/sample.wav`
       });
     }
     
@@ -144,6 +144,47 @@ app.get('/v1/tasks/:id/artifacts', (req, res) => {
   }
   
   res.json({ scenes: task.scenes });
+});
+
+// Serve mock audio file
+app.get('/audio/sample.wav', (req, res) => {
+  // Generate a simple WAV file with a beep sound
+  const sampleRate = 44100;
+  const duration = 1; // 1 second
+  const frequency = 440; // A4 note
+  const amplitude = 0.3;
+  
+  const numSamples = sampleRate * duration;
+  const buffer = Buffer.alloc(44 + numSamples * 2); // WAV header + 16-bit samples
+  
+  // WAV header
+  buffer.write('RIFF', 0);
+  buffer.writeUInt32LE(36 + numSamples * 2, 4);
+  buffer.write('WAVE', 8);
+  buffer.write('fmt ', 12);
+  buffer.writeUInt32LE(16, 16); // PCM format
+  buffer.writeUInt16LE(1, 20); // PCM
+  buffer.writeUInt16LE(1, 22); // Mono
+  buffer.writeUInt32LE(sampleRate, 24);
+  buffer.writeUInt32LE(sampleRate * 2, 28);
+  buffer.writeUInt16LE(2, 32);
+  buffer.writeUInt16LE(16, 34);
+  buffer.write('data', 36);
+  buffer.writeUInt32LE(numSamples * 2, 40);
+  
+  // Generate sine wave
+  for (let i = 0; i < numSamples; i++) {
+    const sample = Math.sin(2 * Math.PI * frequency * i / sampleRate) * amplitude * 32767;
+    buffer.writeInt16LE(Math.round(sample), 44 + i * 2);
+  }
+  
+  res.set({
+    'Content-Type': 'audio/wav',
+    'Content-Length': buffer.length,
+    'Cache-Control': 'public, max-age=3600'
+  });
+  
+  res.send(buffer);
 });
 
 // Health check

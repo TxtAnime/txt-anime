@@ -27,7 +27,7 @@ export const useAnime = () => {
 
   // Navigate to specific scene
   const goToScene = useCallback((sceneIndex: number) => {
-    if (state.animeData && sceneIndex >= 0 && sceneIndex < state.animeData.scenes.length) {
+    if (state.animeData && state.animeData.scenes && sceneIndex >= 0 && sceneIndex < state.animeData.scenes.length) {
       dispatch({ type: 'SET_CURRENT_SCENE', payload: sceneIndex });
       
       // Save scene position to localStorage
@@ -41,7 +41,7 @@ export const useAnime = () => {
 
   // Navigate to next scene
   const nextScene = useCallback(() => {
-    if (state.animeData && state.currentScene < state.animeData.scenes.length - 1) {
+    if (state.animeData && state.animeData.scenes && state.currentScene < state.animeData.scenes.length - 1) {
       goToScene(state.currentScene + 1);
     }
   }, [state.animeData, state.currentScene, goToScene]);
@@ -55,7 +55,7 @@ export const useAnime = () => {
 
   // Get current scene data
   const getCurrentScene = useCallback(() => {
-    if (state.animeData && state.animeData.scenes[state.currentScene]) {
+    if (state.animeData && state.animeData.scenes && state.animeData.scenes[state.currentScene]) {
       return state.animeData.scenes[state.currentScene];
     }
     return null;
@@ -78,7 +78,7 @@ export const useAnime = () => {
         break;
       case 'End':
         event.preventDefault();
-        if (state.animeData) {
+        if (state.animeData && state.animeData.scenes) {
           goToScene(state.animeData.scenes.length - 1);
         }
         break;
@@ -101,7 +101,7 @@ export const useAnime = () => {
       const scenePositions = storage.getItem<Record<string, number>>(STORAGE_KEYS.SCENE_POSITION, {});
       const savedPosition = scenePositions[state.currentTask.id];
       
-      if (savedPosition !== undefined && savedPosition < state.animeData.scenes.length) {
+      if (savedPosition !== undefined && state.animeData.scenes && savedPosition < state.animeData.scenes.length) {
         dispatch({ type: 'SET_CURRENT_SCENE', payload: savedPosition });
       }
     }
@@ -118,7 +118,7 @@ export const useAnime = () => {
     previousScene,
     getCurrentScene,
     totalScenes: state.animeData?.scenes.length || 0,
-    hasNextScene: state.animeData ? state.currentScene < state.animeData.scenes.length - 1 : false,
+    hasNextScene: state.animeData && state.animeData.scenes ? state.currentScene < state.animeData.scenes.length - 1 : false,
     hasPreviousScene: state.currentScene > 0,
   };
 };
