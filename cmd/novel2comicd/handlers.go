@@ -55,13 +55,14 @@ func (h *Handler) CreateTask(w http.ResponseWriter, r *http.Request) {
 
 	// 创建任务
 	task := &Task{
-		ID:        taskID,
-		Name:      req.Name,
-		Novel:     req.Novel,
-		Status:    "doing",
-		Scenes:    make([]Scene, 0), // 确保初始化为空数组而不是nil
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		ID:         taskID,
+		Name:       req.Name,
+		Novel:      req.Novel,
+		Status:     "doing",
+		StatusDesc: "",
+		Scenes:     make([]Scene, 0), // 确保初始化为空数组而不是nil
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
 	}
 
 	if err := h.db.CreateTask(task); err != nil {
@@ -107,9 +108,10 @@ func (h *Handler) GetTask(w http.ResponseWriter, r *http.Request) {
 
 	// 返回响应
 	resp := GetTaskResponse{
-		ID:     task.ID,
-		Name:   task.Name,
-		Status: task.Status,
+		ID:         task.ID,
+		Name:       task.Name,
+		Status:     task.Status,
+		StatusDesc: task.StatusDesc,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
@@ -173,9 +175,10 @@ func (h *Handler) GetTasks(w http.ResponseWriter, r *http.Request) {
 	var taskList []GetTaskResponse
 	for _, task := range tasks {
 		taskList = append(taskList, GetTaskResponse{
-			ID:     task.ID,
-			Name:   task.Name,
-			Status: task.Status,
+			ID:         task.ID,
+			Name:       task.Name,
+			Status:     task.Status,
+			StatusDesc: task.StatusDesc,
 		})
 	}
 

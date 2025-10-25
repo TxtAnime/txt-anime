@@ -18,18 +18,14 @@ const (
 
 // Scene 场景结构
 type Scene struct {
-	SceneID            int            `json:"scene_id"`
-	Location           string         `json:"location"`
-	TimeOfDay          string         `json:"time_of_day"`
-	CharactersPresent  []string       `json:"characters_present"`
-	Characters         []string       `json:"characters"` // 兼容旧格式
-	Narration          string         `json:"narration"`
-	Dialogue           []DialogueLine `json:"dialogue"`
-	ActionDescription  string         `json:"action_description"`
-	VisualDescription  string         `json:"visual_description"`
-	EmotionalTone      string         `json:"emotional_tone"`
-	CameraShot         string         `json:"camera_shot"`
-	BackgroundElements []string       `json:"background_elements"`
+	SceneID           int            `json:"scene_id"`
+	Location          string         `json:"location"`
+	TimeOfDay         string         `json:"time_of_day"`
+	CharactersPresent []string       `json:"characters_present"`
+	Characters        []string       `json:"characters"` // 兼容旧格式
+	SceneDescription  string         `json:"scene_description"`
+	Dialogue          []DialogueLine `json:"dialogue"`
+	NarrationVO       string         `json:"narration_vo"`
 }
 
 // DialogueLine 对话行
@@ -119,31 +115,9 @@ func BuildPrompt(scene Scene, characters map[string]string) string {
 		sb.WriteString(". ")
 	}
 
-	// 动作和场景描述（核心内容）
-	if scene.ActionDescription != "" {
-		sb.WriteString(fmt.Sprintf("Action: %s. ", scene.ActionDescription))
-	}
-
-	// 视觉描述
-	if scene.VisualDescription != "" {
-		sb.WriteString(fmt.Sprintf("Visual: %s. ", scene.VisualDescription))
-	}
-
-	// 情感氛围
-	if scene.EmotionalTone != "" {
-		sb.WriteString(fmt.Sprintf("Mood: %s. ", scene.EmotionalTone))
-	}
-
-	// 镜头角度
-	if scene.CameraShot != "" {
-		sb.WriteString(fmt.Sprintf("Camera: %s. ", scene.CameraShot))
-	}
-
-	// 背景元素
-	if len(scene.BackgroundElements) > 0 {
-		sb.WriteString("Background: ")
-		sb.WriteString(strings.Join(scene.BackgroundElements, ", "))
-		sb.WriteString(". ")
+	// 场景视觉描述（核心内容）
+	if scene.SceneDescription != "" {
+		sb.WriteString(fmt.Sprintf("Scene: %s. ", scene.SceneDescription))
 	}
 
 	// 风格强化 - 强调纯视觉场景，无文字

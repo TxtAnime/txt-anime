@@ -4,13 +4,14 @@ import "time"
 
 // Task 任务结构
 type Task struct {
-	ID        string    `bson:"_id" json:"id"`
-	Name      string    `bson:"name" json:"name"`
-	Novel     string    `bson:"novel" json:"novel"`
-	Status    string    `bson:"status" json:"status"` // "doing" 或 "done"
-	Scenes    []Scene   `bson:"scenes" json:"scenes"`
-	CreatedAt time.Time `bson:"created_at" json:"created_at"`
-	UpdatedAt time.Time `bson:"updated_at" json:"updated_at"`
+	ID         string    `bson:"_id" json:"id"`
+	Name       string    `bson:"name" json:"name"`
+	Novel      string    `bson:"novel" json:"novel"`
+	Status     string    `bson:"status" json:"status"`          // "doing" 或 "done"
+	StatusDesc string    `bson:"status_desc" json:"statusDesc"` // 状态描述
+	Scenes     []Scene   `bson:"scenes" json:"scenes"`
+	CreatedAt  time.Time `bson:"created_at" json:"created_at"`
+	UpdatedAt  time.Time `bson:"updated_at" json:"updated_at"`
 }
 
 // Scene 场景结构
@@ -41,9 +42,10 @@ type CreateTaskResponse struct {
 
 // GetTaskResponse 获取任务响应
 type GetTaskResponse struct {
-	ID     string `json:"id"`
-	Name   string `json:"name"`
-	Status string `json:"status"`
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	Status     string `json:"status"`
+	StatusDesc string `json:"statusDesc"`
 }
 
 // GetArtifactsResponse 获取产物响应

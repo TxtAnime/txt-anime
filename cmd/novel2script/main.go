@@ -13,7 +13,7 @@ import (
 const (
 	baseURL = "https://openai.qiniu.com/v1"
 	apiKey  = "sk-e44bb568586c50374d8b3f313fca6caab52f334eefa632039cae206d9d11a6fc"
-	model   = "deepseek-v3"
+	model   = "deepseek/deepseek-v3.1-terminus"
 )
 
 func main() {
