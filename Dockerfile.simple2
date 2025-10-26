@@ -1,0 +1,13 @@
+FROM alpine:latest
+
+RUN apk --no-cache add ca-certificates
+
+WORKDIR /root/
+
+COPY novel2comicd-linux ./novel2comicd
+
+RUN mkdir -p outputs && chmod +x novel2comicd
+
+EXPOSE 8080
+
+CMD ["./novel2comicd", "-config", "/etc/config/config.json"]

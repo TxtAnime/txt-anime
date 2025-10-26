@@ -1,0 +1,25 @@
+{
+  "server": {
+    "port": 8080
+  },
+  "mongodb": {
+    "uri": "mongodb://localhost:27017",
+    "database": "novel2comic",
+    "collection": "tasks"
+  },
+  "ai": {
+    "base_url": "https://openai.qiniu.com/v1",
+    "api_key": "your-api-key-here",
+    "text_model": "deepseek-v3",
+    "image_model": "gemini-2.5-flash-image"
+  },
+  "qiniu": {
+    "access_key": "your-access-key-here",
+    "secret_key": "your-secret-key-here",
+    "bucket": "novel2comic",
+    "domain": "http://your-domain.com"
+  },
+  "storage": {
+    "output_dir": "./outputs"
+  }
+}

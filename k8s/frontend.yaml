@@ -1,28 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: novel-to-anime-frontend
-  namespace: qmatrix
+  name: frontend
+  namespace: txt-anime
   labels:
-    app: novel-to-anime-frontend
+    app: frontend
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: novel-to-anime-frontend
+      app: frontend
   template:
     metadata:
       labels:
-        app: novel-to-anime-frontend
+        app: frontend
     spec:
       containers:
       - name: frontend
-        image: aslan-spock-register.qiniu.io/qmatrix/novel-to-anime-frontend:latest
+        image: aslan-spock-register.qiniu.io/qmatrix/novel2comicd-frontend:latest
         ports:
         - containerPort: 80
-        envFrom:
-        - configMapRef:
-            name: app-config
         resources:
           requests:
             memory: "64Mi"
@@ -30,31 +27,31 @@ spec:
           limits:
             memory: "128Mi"
             cpu: "100m"
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 80
-          initialDelaySeconds: 30
-          periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /
             port: 80
           initialDelaySeconds: 5
           periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: frontend-service
-  namespace: qmatrix
+  name: frontend
+  namespace: txt-anime
   labels:
-    app: novel-to-anime-frontend
+    app: frontend
 spec:
   selector:
-    app: novel-to-anime-frontend
+    app: frontend
   ports:
   - port: 80
     targetPort: 80
     protocol: TCP
-  type: ClusterIP
+  type: LoadBalancer
