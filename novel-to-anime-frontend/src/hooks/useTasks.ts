@@ -98,6 +98,35 @@ export const useTasks = () => {
     }
   }, [dispatch]);
 
+  // Delete task
+  const deleteTask = useCallback(async (id: string) => {
+    try {
+      dispatch({ type: 'SET_LOADING', payload: true });
+      dispatch({ type: 'SET_ERROR', payload: null });
+
+      await TaskService.deleteTask(id);
+      dispatch({ type: 'DELETE_TASK', payload: id });
+      
+      // Update localStorage
+      const currentTasks = storage.getItem<string[]>(STORAGE_KEYS.TASKS, []);
+      storage.setItem(STORAGE_KEYS.TASKS, currentTasks.filter(taskId => taskId !== id));
+
+      // Clear current task if it was deleted
+      const currentTaskId = storage.getItem<string>(STORAGE_KEYS.CURRENT_TASK, '');
+      if (currentTaskId === id) {
+        storage.removeItem(STORAGE_KEYS.CURRENT_TASK);
+      }
+
+      return true;
+    } catch (error) {
+      const apiError = handleApiError(error);
+      dispatch({ type: 'SET_ERROR', payload: apiError.message });
+      throw apiError;
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  }, [dispatch]);
+
   // Polling for task status updates
   const startPolling = useCallback((taskId: string, interval: number = 5000) => {
     const pollTask = async () => {
@@ -135,6 +164,7 @@ export const useTasks = () => {
     loadTasks,
     createTask,
     getTask,
+    deleteTask,
     setCurrentTask,
     startPolling,
   };

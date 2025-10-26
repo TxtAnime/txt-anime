@@ -5,6 +5,7 @@ import type {
   CreateTaskResponse,
   GetTaskResponse,
   GetTasksResponse,
+  DeleteTaskResponse,
   AnimeArtifacts,
 } from '../types';
 
@@ -57,6 +58,11 @@ class ApiClient {
     const response: AxiosResponse<T> = await this.client.post(url, data);
     return response.data;
   }
+
+  async delete<T>(url: string): Promise<T> {
+    const response: AxiosResponse<T> = await this.client.delete(url);
+    return response.data;
+  }
 }
 
 // Create API client instance
@@ -91,6 +97,13 @@ export class TaskService {
    */
   static async getTaskArtifacts(id: string): Promise<AnimeArtifacts> {
     return apiClient.get<AnimeArtifacts>(`/v1/tasks/${id}/artifacts`);
+  }
+
+  /**
+   * Delete a task by ID
+   */
+  static async deleteTask(id: string): Promise<DeleteTaskResponse> {
+    return apiClient.delete<DeleteTaskResponse>(`/v1/tasks/${id}`);
   }
 }
 

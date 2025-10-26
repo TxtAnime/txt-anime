@@ -1043,3 +1043,276 @@ Spin animation for loading indicators */
     transform: rotate(360deg);
   }
 }
+/* Enh
+anced Menu and Dialog Animations */
+@keyframes menuSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes dialogSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Menu dropdown animation */
+.menu-dropdown {
+  animation: menuSlideIn 0.2s ease-out;
+  transform-origin: top right;
+}
+
+/* Dialog overlay animation */
+.dialog-overlay {
+  animation: overlayFadeIn 0.2s ease-out;
+}
+
+/* Dialog content animation */
+.dialog-content {
+  animation: dialogSlideIn 0.2s ease-out;
+}
+
+/* Enhanced button hover effects for menu items */
+.menu-item {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.menu-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.05), transparent);
+  transition: left 0.3s ease;
+}
+
+.menu-item:hover::before {
+  left: 100%;
+}
+
+/* Danger menu item special styling */
+.menu-item-danger {
+  position: relative;
+}
+
+.menu-item-danger:hover {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+.menu-item-danger:hover svg {
+  color: #dc2626;
+}
+
+/* Three dots button animation */
+.menu-trigger {
+  transition: all 0.2s ease;
+}
+
+.menu-trigger:hover {
+  background-color: #f9fafb;
+  transform: scale(1.1);
+}
+
+.menu-trigger:active {
+  transform: scale(0.95);
+}
+
+/* Card deletion animation */
+@keyframes cardSlideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+    max-height: 200px;
+    margin-bottom: 12px;
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-100%);
+    max-height: 0;
+    margin-bottom: 0;
+  }
+}
+
+.card-deleting {
+  animation: cardSlideOut 0.3s ease-in forwards;
+}
+
+/* Enhanced status indicator with pulse effect */
+.status-processing {
+  position: relative;
+}
+
+.status-processing::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: inherit;
+  background: linear-gradient(45deg, transparent, rgba(251, 191, 36, 0.3), transparent);
+  animation: statusPulse 2s infinite;
+  z-index: -1;
+}
+
+@keyframes statusPulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+/* Improved focus states for accessibility */
+.menu-item:focus-visible {
+  outline: none;
+  background-color: #f3f4f6;
+  box-shadow: inset 0 0 0 2px #3b82f6;
+}
+
+.menu-trigger:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+}
+
+/* Smooth transitions for all interactive elements */
+.interactive {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced shadow effects for depth */
+.shadow-menu {
+  box-shadow: 
+    0 10px 25px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+.shadow-dialog {
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+/* Micro-interactions for better feedback */
+.button-press {
+  transition: transform 0.1s ease;
+}
+
+.button-press:active {
+  transform: scale(0.98);
+}
+
+/* Loading state for delete operation */
+.deleting-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: inherit;
+  z-index: 10;
+}
+
+.deleting-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e5e7eb;
+  border-top: 2px solid #ef4444;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Enhanced typography for dialog */
+.dialog-title {
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.4;
+}
+
+.dialog-message {
+  line-height: 1.5;
+  color: #6b7280;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 640px) {
+  .menu-dropdown {
+    min-width: 140px;
+    font-size: 14px;
+  }
+  
+  .dialog-content {
+    margin: 16px;
+    max-width: calc(100vw - 32px);
+  }
+  
+  .menu-item {
+    padding: 10px 14px;
+  }
+}
+
+/* High contrast mode adjustments */
+@media (prefers-contrast: high) {
+  .menu-item:hover {
+    background-color: #000;
+    color: #fff;
+  }
+  
+  .menu-item-danger:hover {
+    background-color: #dc2626;
+    color: #fff;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .menu-dropdown,
+  .dialog-content,
+  .dialog-overlay,
+  .card-deleting {
+    animation: none;
+  }
+  
+  .menu-item::before,
+  .status-processing::after {
+    display: none;
+  }
+  
+  .interactive,
+  .menu-trigger,
+  .button-press {
+    transition: none;
+  }
+}
