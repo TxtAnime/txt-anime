@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { generateDialogueId } from '../utils';
+import { resolveAssetUrl } from '../services/api';
 import type { AudioPlayerState } from '../types';
 
 export const useAudioPlayer = () => {
@@ -326,7 +327,7 @@ export const useAudioPlayer = () => {
     // Add all dialogues
     sceneDialogues.forEach((dialogue, index) => {
       queue.push({
-        url: dialogue.voiceURL,
+        url: resolveAssetUrl(dialogue.voiceURL),
         id: generateDialogueId(sceneIndex, index)
       });
     });

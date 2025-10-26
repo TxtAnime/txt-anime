@@ -5,6 +5,7 @@ import { useAnime } from '../../hooks/useAnime';
 import { useAudioPlayer } from '../../hooks/useAudioPlayer';
 import { useTasks } from '../../hooks/useTasks';
 import { storage } from '../../utils';
+import { resolveAssetUrl } from '../../services/api';
 import type { Dialogue } from '../../types';
 
 interface AnimeViewerProps {
@@ -73,7 +74,7 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
           startAutoPlay(
             scene.dialogues || [], 
             currentScene, 
-            hasNarration ? { url: scene.narrationVoiceURL! } : undefined
+            hasNarration ? { url: resolveAssetUrl(scene.narrationVoiceURL!) } : undefined
           );
         }, 1000); // Longer delay to ensure everything is ready
         
@@ -88,7 +89,7 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
   const handleDialogueClick = async (dialogue: Dialogue, dialogueIndex: number) => {
     try {
       // Manual click stops auto-play for this scene
-      await toggleDialogue(dialogue.voiceURL, currentScene, dialogueIndex);
+      await toggleDialogue(resolveAssetUrl(dialogue.voiceURL), currentScene, dialogueIndex);
     } catch (error) {
       console.error('Failed to play dialogue:', error);
     }
@@ -99,7 +100,7 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
     if (scene?.narrationVoiceURL) {
       try {
         // Manual click stops auto-play for this scene
-        await playNarration(scene.narrationVoiceURL, currentScene);
+        await playNarration(resolveAssetUrl(scene.narrationVoiceURL), currentScene);
       } catch (error) {
         console.error('Failed to play narration:', error);
       }
@@ -502,7 +503,7 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
             }}>
               {scene.imageURL ? (
                 <img
-                  src={scene.imageURL}
+                  src={resolveAssetUrl(scene.imageURL)}
                   alt={`Scene ${currentScene + 1}`}
                   style={{
                     width: '100%',

@@ -1,5 +1,6 @@
 import { useAnime } from '../../hooks/useAnime';
 import { Button } from '../common/Button';
+import { resolveAssetUrl } from '../../services/api';
 
 interface SceneNavigatorProps {
   showThumbnails?: boolean;
@@ -106,7 +107,7 @@ export const SceneNavigator = ({ showThumbnails = false, className = '' }: Scene
                 }`}
               >
                 <img
-                  src={scene.imageURL}
+                  src={resolveAssetUrl(scene.imageURL)}
                   alt={`Scene ${index + 1}`}
                   className="w-full h-full object-cover"
                   onError={(e) => {
