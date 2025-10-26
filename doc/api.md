@@ -31,10 +31,12 @@ GET /v1/tasks/:id
 {
 	id: <string>,
 	name: <string>,
-	status: <string>
+	status: <string>,
+	statusDesc: <string>
 }
 ```
 - status: 字符串枚举值，值有 `doing`、`done`
+- statusDesc: status字段的描述， 比如 status `doing` 的时候， statusDesc 可能是“剧本生成中”、“场景图片生成中” 之类
 
 ## 获取任务产物
 
@@ -88,7 +90,8 @@ GET /v1/tasks/
 		{
 			id: <string>,
 			name: <string>,
-			status: <string>
+			status: <string>,
+			statusDesc: <string>
 		},
 		...
 	]

@@ -3,6 +3,7 @@ export interface Task {
   id: string;
   name: string;
   status: 'doing' | 'done';
+  statusDesc: string;
   createdAt?: Date;
 }
 
@@ -15,6 +16,7 @@ export interface Dialogue {
 export interface AnimeScene {
   imageURL: string; // URL to image file
   narration: string;
+  narrationVoiceURL?: string; // URL to narration audio file (optional)
   dialogues: Dialogue[];
 }
 
@@ -36,6 +38,7 @@ export interface GetTaskResponse {
   id: string;
   name: string;
   status: 'doing' | 'done';
+  statusDesc: string;
 }
 
 export interface GetTasksResponse {
@@ -58,7 +61,7 @@ export type AppAction =
   | { type: 'SET_ERROR'; payload: string | null }
   | { type: 'SET_TASKS'; payload: Task[] }
   | { type: 'ADD_TASK'; payload: Task }
-  | { type: 'UPDATE_TASK'; payload: { id: string; status: 'doing' | 'done' } }
+  | { type: 'UPDATE_TASK'; payload: { id: string; status: 'doing' | 'done'; statusDesc?: string } }
   | { type: 'SET_CURRENT_TASK'; payload: Task | null }
   | { type: 'SET_ANIME_DATA'; payload: AnimeArtifacts | null }
   | { type: 'SET_CURRENT_SCENE'; payload: number }

@@ -14,6 +14,7 @@ export const useAudioPlayer = () => {
   const currentAutoPlayIndex = useRef<number>(-1);
   const userInteracted = useRef<boolean>(false);
   const isAutoPlaying = useRef<boolean>(false);
+  const isPlayingRef = useRef<boolean>(false); // Track if we're currently attempting to play
 
   // Track user interaction
   useEffect(() => {
@@ -39,6 +40,7 @@ export const useAudioPlayer = () => {
       audioRef.current.pause();
       audioRef.current = null;
     }
+    isPlayingRef.current = false;
   }, []);
 
   // Play audio from URL
@@ -49,6 +51,14 @@ export const useAudioPlayer = () => {
     try {
       console.log('Attempting to play audio:', { audioUrl, dialogueId });
       console.log('User interaction detected:', userInteracted.current);
+      
+      // Prevent multiple simultaneous play attempts
+      if (isPlayingRef.current) {
+        console.log('Already attempting to play audio, skipping...');
+        return;
+      }
+      
+      isPlayingRef.current = true;
       
       // Check if user has interacted with the page
       if (!userInteracted.current) {
@@ -216,6 +226,8 @@ export const useAudioPlayer = () => {
         isPlaying: false,
       }));
       cleanup();
+    } finally {
+      isPlayingRef.current = false;
     }
   }, [playerState.volume, cleanup]);
 
@@ -290,6 +302,13 @@ export const useAudioPlayer = () => {
 
   // Start auto-play for a scene
   const startAutoPlay = useCallback((sceneDialogues: Array<{ voiceURL: string }>, sceneIndex: number, includeNarration?: { url: string }) => {
+    console.log('startAutoPlay called for scene:', sceneIndex);
+    
+    // Prevent multiple simultaneous auto-play starts
+    if (isAutoPlaying.current) {
+      console.log('Auto-play already in progress, stopping previous...');
+    }
+    
     // Stop current playback
     stopAudio();
     

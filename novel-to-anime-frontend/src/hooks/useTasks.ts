@@ -17,6 +17,7 @@ export const useTasks = () => {
       const tasks = response.tasks.map(task => ({
         ...task,
         name: task.name || `Project ${task.id.substring(0, 8)}`,
+        statusDesc: task.statusDesc || (task.status === 'done' ? '任务完成' : '处理中'),
         createdAt: new Date(), // API doesn't provide creation time, using current time
       }));
 
@@ -46,6 +47,7 @@ export const useTasks = () => {
         id: response.id,
         name,
         status: 'doing',
+        statusDesc: '任务创建中',
         createdAt: new Date(),
       };
 
@@ -72,10 +74,11 @@ export const useTasks = () => {
       const task: Task = {
         ...response,
         name: response.name || `Project ${response.id.substring(0, 8)}`,
+        statusDesc: response.statusDesc || (response.status === 'done' ? '任务完成' : '处理中'),
         createdAt: new Date(), // API doesn't provide creation time
       };
 
-      dispatch({ type: 'UPDATE_TASK', payload: { id, status: response.status } });
+      dispatch({ type: 'UPDATE_TASK', payload: { id, status: response.status, statusDesc: response.statusDesc } });
       return task;
     } catch (error) {
       const apiError = handleApiError(error);

@@ -2,6 +2,7 @@
 cmd/novel2comicd/config.json
 outputs/
 novel2comicd
+novel2comicd-linux
 bin/
 novel2script
 storyboard
