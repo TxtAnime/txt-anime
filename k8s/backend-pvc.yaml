@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backend-outputs
+  namespace: txt-anime
+spec:
+  accessModes:
+    - ReadWriteOnce  # 单个 Pod 可以读写
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: kodo-other-stg  # 使用默认 StorageClass
