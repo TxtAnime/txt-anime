@@ -8,4 +8,14 @@ novel2script
 storyboard
 audiosync
 demo-story.txt
+
+# 运行时日志文件
+*.log
+backend.log
+frontend.log
+
+# 本地环境文件
+novel-to-anime-frontend/.env.local
+
+# K8s 配置文件（包含敏感信息）
 k8s/backend.yaml

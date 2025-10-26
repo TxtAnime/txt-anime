@@ -221,7 +221,10 @@ export const NovelUploadForm = ({ onTaskCreated }: NovelUploadFormProps) => {
           type="button"
           variant="secondary"
           size="sm"
-          onClick={handleFileSelect}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleFileSelect();
+          }}
           disabled={isLoading || isFileLoading}
           loading={isFileLoading}
         >

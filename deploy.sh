@@ -163,33 +163,151 @@ if [ "$DEPLOYMENT_MODE" = "k8s" ]; then
     echo "  kubectl delete namespace $NAMESPACE"
     
 else
-    echo "🐳 本地 Docker Compose 部署模式"
+    echo "💻 本地机器部署模式"
     
-    # 检查 docker-compose 是否可用
-    if ! command -v docker-compose &> /dev/null; then
-        echo "❌ docker-compose 未安装，请先安装 docker-compose"
+    # 检查必要工具
+    echo "📋 检查必要工具..."
+    for tool in go node npm; do
+        if ! command -v $tool &> /dev/null; then
+            echo "❌ $tool 未安装，请先安装 $tool"
+            exit 1
+        fi
+    done
+    echo "✅ 所有必要工具已就绪"
+    
+    # 1. 构建后端程序
+    echo ""
+    echo "🔨 步骤1: 构建后端程序..."
+    echo "  编译 Go 二进制文件..."
+    go build -o novel2comicd ./cmd/novel2comicd
+    if [ $? -ne 0 ]; then
+        echo "❌ 后端编译失败"
         exit 1
     fi
+    echo "✅ 后端程序构建成功"
     
-    # 停止现有容器
-    echo "停止现有容器..."
-    docker-compose down || true
-    
-    # 启动服务
-    echo "启动服务..."
-    docker-compose up -d
-    
-    # 显示状态
+    # 构建前端
     echo ""
-    echo "📊 容器状态："
-    docker-compose ps
+    echo "🔨 构建前端程序..."
+    cd novel-to-anime-frontend
+    
+    # 检查是否需要安装依赖
+    if [ ! -d "node_modules" ]; then
+        echo "  安装前端依赖..."
+        npm install
+        if [ $? -ne 0 ]; then
+            echo "❌ 前端依赖安装失败"
+            cd ..
+            exit 1
+        fi
+    fi
+    
+    # 构建前端（本地部署使用特殊环境变量）
+    echo "  构建前端..."
+    VITE_API_BASE_URL=http://localhost:8080 VITE_ASSETS_BASE_URL=http://localhost:8080 npm run build
+    if [ $? -ne 0 ]; then
+        echo "❌ 前端构建失败"
+        cd ..
+        exit 1
+    fi
+    cd ..
+    echo "✅ 前端程序构建成功"
+    
+    # 检查配置文件
+    echo ""
+    echo "📋 检查配置文件..."
+    if [ ! -f "cmd/novel2comicd/config.json" ]; then
+        if [ -f "config.json.example" ]; then
+            echo "  复制示例配置文件..."
+            cp config.json.example cmd/novel2comicd/config.json
+            echo "⚠️  请编辑 cmd/novel2comicd/config.json 配置文件"
+        else
+            echo "❌ 配置文件不存在，请创建 cmd/novel2comicd/config.json"
+            exit 1
+        fi
+    fi
+    echo "✅ 配置文件检查完成"
+    
+    # 2. 启动后端程序
+    echo ""
+    echo "🚀 步骤2: 启动后端程序..."
+    echo "  后端将在后台运行，端口: 8080"
+    
+    # 杀死可能存在的旧进程
+    pkill -f "./novel2comicd" || true
+    sleep 2
+    
+    # 启动后端（在项目根目录运行，使用配置文件的相对路径）
+    nohup ./novel2comicd -config cmd/novel2comicd/config.json > backend.log 2>&1 &
+    BACKEND_PID=$!
+    
+    # 等待后端启动
+    echo "  等待后端启动..."
+    sleep 3
+    
+    # 检查后端是否启动成功
+    if curl -s http://localhost:8080/health > /dev/null 2>&1; then
+        echo "✅ 后端启动成功 (PID: $BACKEND_PID)"
+    else
+        echo "⚠️  后端可能启动失败，请检查日志: tail -f backend.log"
+    fi
+    
+    # 3. 启动前端程序
+    echo ""
+    echo "🚀 步骤3: 启动前端程序..."
+    echo "  前端将在后台运行，端口: 3000"
+    
+    cd novel-to-anime-frontend
+    
+    # 杀死可能存在的旧进程
+    pkill -f "npm.*serve" || true
+    pkill -f "serve.*dist" || true
+    pkill -f "serve -s dist" || true
+    sleep 2
+    
+    # 检查并杀死占用 3000 端口的进程
+    PORT_PID=$(lsof -ti:3000 2>/dev/null || true)
+    if [ -n "$PORT_PID" ]; then
+        echo "  停止占用端口 3000 的进程 (PID: $PORT_PID)..."
+        kill -9 $PORT_PID 2>/dev/null || true
+        sleep 2
+    fi
+    
+    # 使用 Vite 预览服务器（支持代理配置）
+    nohup npm run preview -- --port 3000 --host 0.0.0.0 > ../frontend.log 2>&1 &
+    FRONTEND_PID=$!
+    cd ..
+    
+    # 等待前端启动
+    echo "  等待前端启动..."
+    sleep 3
+    
+    # 检查前端是否启动成功
+    if curl -s http://localhost:3000 > /dev/null 2>&1; then
+        echo "✅ 前端启动成功 (PID: $FRONTEND_PID)"
+    else
+        echo "⚠️  前端可能启动失败，请检查日志: tail -f frontend.log"
+    fi
     
     echo ""
-    echo "✅ 本地部署完成！"
-    echo "前端地址: http://localhost:3000"
-    echo "后端地址: http://localhost:8080"
+    echo "✅ 本地机器部署完成！"
     echo ""
-    echo "使用以下命令查看日志："
-    echo "  docker-compose logs -f backend"
-    echo "  docker-compose logs -f frontend"
+    echo "🌐 访问地址："
+    echo "  前端: http://localhost:3000"
+    echo "  后端: http://localhost:8080"
+    echo ""
+    echo "📊 进程信息："
+    echo "  后端 PID: $BACKEND_PID"
+    echo "  前端 PID: $FRONTEND_PID"
+    echo ""
+    echo "📝 查看日志："
+    echo "  后端日志: tail -f backend.log"
+    echo "  前端日志: tail -f frontend.log"
+    echo ""
+    echo "🛑 停止服务："
+    echo "  pkill -f './novel2comicd'"
+    echo "  pkill -f 'serve.*dist'"
+    echo ""
+    echo "🔄 重启服务："
+    echo "  ./deploy.sh"
 fi
