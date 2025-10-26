@@ -39,7 +39,7 @@ metadata:
   labels:
     app: backend
 spec:
-  replicas: 2
+  replicas: 1  # 使用持久化存储时只能有 1 个副本（ReadWriteOnce）
   selector:
     matchLabels:
       app: backend
@@ -48,6 +48,13 @@ spec:
       labels:
         app: backend
     spec:
+      volumes:
+      - name: outputs-volume
+        persistentVolumeClaim:
+          claimName: backend-outputs
+      - name: config-volume
+        configMap:
+          name: backend-config
       containers:
       - name: backend
         image: aslan-spock-register.qiniu.io/qmatrix/novel2comicd-backend:latest
@@ -61,6 +68,8 @@ spec:
         command: ["./novel2comicd"]
         args: ["-config", "/etc/config/config.json"]
         volumeMounts:
+        - name: outputs-volume
+          mountPath: /app/outputs
         - name: config-volume
           mountPath: /etc/config
           readOnly: true
@@ -85,10 +94,6 @@ spec:
           initialDelaySeconds: 60
           periodSeconds: 10
           failureThreshold: 5
-      volumes:
-      - name: config-volume
-        configMap:
-          name: backend-config
 ---
 apiVersion: v1
 kind: Service

@@ -114,6 +114,10 @@ if [ "$DEPLOYMENT_MODE" = "k8s" ]; then
     kubectl wait --for=condition=ready pod -l app=mongodb -n $NAMESPACE --timeout=60s > /dev/null 2>&1 || true
     sleep 5
     
+    # 创建后端持久化存储
+    echo "  创建后端持久化存储..."
+    kubectl apply -f k8s/backend-pvc.yaml > /dev/null 2>&1
+    
     # 部署后端
     echo "  部署后端服务..."
     kubectl apply -f k8s/backend.yaml > /dev/null 2>&1

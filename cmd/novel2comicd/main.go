@@ -37,8 +37,9 @@ func main() {
 	}
 
 	// 构建服务器 base URL
-	baseURL := fmt.Sprintf("http://localhost:%d", config.Server.Port)
-	log.Printf("服务器 Base URL: %s", baseURL)
+	// 使用空字符串表示相对路径，让前端和 nginx 处理完整 URL
+	baseURL := ""
+	log.Printf("服务器 Base URL: %s (使用相对路径)", baseURL)
 
 	// 启动任务处理器
 	log.Println("启动后台任务处理器")
