@@ -1,5 +1,5 @@
 .DS_Store
-cmd/novel2comicd/config.json
+config.json
 outputs/
 novel2comicd
 novel2comicd-linux
@@ -8,3 +8,4 @@ novel2script
 storyboard
 audiosync
 demo-story.txt
+k8s/backend.yaml

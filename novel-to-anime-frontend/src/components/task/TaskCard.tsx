@@ -1,12 +1,30 @@
+import { useState, useRef, useEffect } from 'react';
 import type { Task } from '../../types';
 
 interface TaskCardProps {
   task: Task;
   onSelect: (task: Task) => void;
+  onDelete?: (task: Task) => void;
   isSelected?: boolean;
 }
 
-export const TaskCard = ({ task, onSelect, isSelected = false }: TaskCardProps) => {
+export const TaskCard = ({ task, onSelect, onDelete, isSelected = false }: TaskCardProps) => {
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+
+    if (showMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showMenu]);
   const getStatusConfig = (status: string) => {
     switch (status) {
       case 'doing':
@@ -148,7 +166,8 @@ export const TaskCard = ({ task, onSelect, isSelected = false }: TaskCardProps) 
             justifyContent: 'space-between', 
             paddingTop: '8px', 
             borderTop: '1px solid #f3f4f6',
-            marginTop: '8px'
+            marginTop: '8px',
+            position: 'relative'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div style={{ width: '8px', height: '8px', backgroundColor: '#34d399', borderRadius: '50%' }}></div>
@@ -156,9 +175,169 @@ export const TaskCard = ({ task, onSelect, isSelected = false }: TaskCardProps) 
                 {task.statusDesc || 'Ready to view'}
               </span>
             </div>
-            <svg style={{ width: '16px', height: '16px', color: '#9ca3af' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <svg style={{ width: '16px', height: '16px', color: '#9ca3af' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              
+              {/* Menu button positioned at bottom right */}
+              <div style={{ position: 'relative' }} ref={menuRef}>
+                <button
+                  className="menu-trigger interactive button-press"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowMenu(!showMenu);
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '4px',
+                    border: '1px solid #e5e7eb',
+                    backgroundColor: 'white',
+                    cursor: 'pointer'
+                  }}
+                  title="More options"
+                >
+                  <svg style={{ width: '12px', height: '12px', color: '#6b7280' }} fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                  </svg>
+                </button>
+
+                {/* Dropdown menu */}
+                {showMenu && (
+                  <div 
+                    className="menu-dropdown shadow-menu"
+                    style={{
+                      position: 'absolute',
+                      bottom: '100%',
+                      right: '0',
+                      marginBottom: '4px',
+                      backgroundColor: 'white',
+                      borderRadius: '8px',
+                      border: '1px solid #e5e7eb',
+                      minWidth: '120px',
+                      zIndex: 50,
+                      overflow: 'hidden'
+                    }}>
+                    {/* Delete option */}
+                    {onDelete && (
+                      <button
+                        className="menu-item menu-item-danger interactive button-press"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowMenu(false);
+                          onDelete(task);
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          border: 'none',
+                          backgroundColor: 'transparent',
+                          cursor: 'pointer',
+                          fontSize: '13px',
+                          color: '#ef4444'
+                        }}
+                      >
+                        <svg style={{ width: '14px', height: '14px', color: '#ef4444' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        <span>Delete</span>
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Menu button for processing tasks - positioned at bottom right */}
+        {task.status === 'doing' && (
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'flex-end', 
+            paddingTop: '8px',
+            marginTop: '8px'
+          }}>
+            <div style={{ position: 'relative' }} ref={menuRef}>
+              <button
+                className="menu-trigger interactive button-press"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowMenu(!showMenu);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '4px',
+                  border: '1px solid #e5e7eb',
+                  backgroundColor: 'white',
+                  cursor: 'pointer'
+                }}
+                title="More options"
+              >
+                <svg style={{ width: '12px', height: '12px', color: '#6b7280' }} fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                </svg>
+              </button>
+
+              {/* Dropdown menu */}
+              {showMenu && (
+                <div 
+                  className="menu-dropdown shadow-menu"
+                  style={{
+                    position: 'absolute',
+                    bottom: '100%',
+                    right: '0',
+                    marginBottom: '4px',
+                    backgroundColor: 'white',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                    minWidth: '120px',
+                    zIndex: 50,
+                    overflow: 'hidden'
+                  }}>
+                  {/* Delete option */}
+                  {onDelete && (
+                    <button
+                      className="menu-item menu-item-danger interactive button-press"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowMenu(false);
+                        onDelete(task);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        border: 'none',
+                        backgroundColor: 'transparent',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                        color: '#ef4444'
+                      }}
+                    >
+                      <svg style={{ width: '14px', height: '14px', color: '#ef4444' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      <span>Delete</span>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

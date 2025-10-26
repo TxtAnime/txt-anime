@@ -45,6 +45,11 @@ export interface GetTasksResponse {
   tasks: Task[];
 }
 
+export interface DeleteTaskResponse {
+  success: boolean;
+  message: string;
+}
+
 // Application state types
 export interface AppState {
   tasks: Task[];
@@ -62,6 +67,7 @@ export type AppAction =
   | { type: 'SET_TASKS'; payload: Task[] }
   | { type: 'ADD_TASK'; payload: Task }
   | { type: 'UPDATE_TASK'; payload: { id: string; status: 'doing' | 'done'; statusDesc?: string } }
+  | { type: 'DELETE_TASK'; payload: string }
   | { type: 'SET_CURRENT_TASK'; payload: Task | null }
   | { type: 'SET_ANIME_DATA'; payload: AnimeArtifacts | null }
   | { type: 'SET_CURRENT_SCENE'; payload: number }

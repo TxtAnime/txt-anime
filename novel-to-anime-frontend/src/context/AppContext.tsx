@@ -61,6 +61,14 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
           : state.currentTask,
       };
 
+    case 'DELETE_TASK':
+      return {
+        ...state,
+        tasks: state.tasks.filter(task => task.id !== action.payload),
+        currentTask: state.currentTask?.id === action.payload ? null : state.currentTask,
+        animeData: state.currentTask?.id === action.payload ? null : state.animeData,
+      };
+
     case 'SET_CURRENT_TASK':
       return {
         ...state,

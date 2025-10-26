@@ -97,3 +97,18 @@ GET /v1/tasks/
 	]
 }
 ```
+
+## 删除任务
+
+```
+请求
+
+DELETE /v1/tasks/:id
+
+响应
+
+{
+	success: <boolean>,
+	message: <string>
+}
+```

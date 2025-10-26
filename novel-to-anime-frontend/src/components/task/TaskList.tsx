@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { TaskCard } from './TaskCard';
 import { Button } from '../common/Button';
+import { ConfirmDialog } from '../common/ConfirmDialog';
 import { useTasks } from '../../hooks/useTasks';
 import type { Task } from '../../types';
 
@@ -9,7 +11,8 @@ interface TaskListProps {
 }
 
 export const TaskList = ({ onTaskSelect, selectedTaskId }: TaskListProps) => {
-  const { tasks, isLoading, error, loadTasks } = useTasks();
+  const { tasks, isLoading, error, loadTasks, deleteTask } = useTasks();
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
 
   const handleRefresh = () => {
     loadTasks();
@@ -19,6 +22,26 @@ export const TaskList = ({ onTaskSelect, selectedTaskId }: TaskListProps) => {
     if (onTaskSelect) {
       onTaskSelect(task);
     }
+  };
+
+  const handleTaskDelete = (task: Task) => {
+    setTaskToDelete(task);
+  };
+
+  const confirmDelete = async () => {
+    if (taskToDelete) {
+      try {
+        await deleteTask(taskToDelete.id);
+        setTaskToDelete(null);
+      } catch (error) {
+        console.error('Failed to delete task:', error);
+        setTaskToDelete(null);
+      }
+    }
+  };
+
+  const cancelDelete = () => {
+    setTaskToDelete(null);
   };
 
   if (isLoading && tasks.length === 0) {
@@ -202,6 +225,7 @@ export const TaskList = ({ onTaskSelect, selectedTaskId }: TaskListProps) => {
                 key={task.id}
                 task={task}
                 onSelect={handleTaskSelect}
+                onDelete={handleTaskDelete}
                 isSelected={task.id === selectedTaskId}
               />
             ))}
@@ -261,6 +285,18 @@ export const TaskList = ({ onTaskSelect, selectedTaskId }: TaskListProps) => {
           </div>
         </div>
       )}
+
+      {/* Delete confirmation dialog */}
+      <ConfirmDialog
+        isOpen={taskToDelete !== null}
+        title="Delete Project"
+        message={`Are you sure you want to delete "${taskToDelete?.name || `Project ${taskToDelete?.id.substring(0, 8)}`}"? This action cannot be undone and all associated data will be permanently removed.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        variant="danger"
+      />
     </div>
   );
 };
