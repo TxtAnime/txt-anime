@@ -19,6 +19,12 @@
     "bucket": "novel2comic",
     "domain": "http://your-domain.com"
   },
+  "tts_provider": "tencent",
+	"tencent_tts": {
+	  "secret_id": "YOUR_TENCENT_SECRET_ID",
+	  "secret_key": "YOUR_TENCENT_SECRET_KEY",
+	  "region": "ap-guangzhou"
+	}
   "storage": {
     "output_dir": "./outputs"
   }
