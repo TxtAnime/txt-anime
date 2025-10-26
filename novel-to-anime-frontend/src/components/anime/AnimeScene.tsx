@@ -1,4 +1,5 @@
 import type { AnimeScene as AnimeSceneType, Dialogue } from '../../types';
+import { resolveAssetUrl } from '../../services/api';
 
 interface AnimeSceneProps {
   scene: AnimeSceneType;
@@ -25,7 +26,7 @@ export const AnimeScene = ({
       <div className="relative">
         {scene.imageURL ? (
           <img
-            src={scene.imageURL}
+            src={resolveAssetUrl(scene.imageURL)}
             alt={`Scene ${sceneIndex + 1}`}
             className="w-full h-64 sm:h-80 md:h-96 object-cover"
             onError={(e) => {

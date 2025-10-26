@@ -10,7 +10,16 @@ import type {
 } from '../types';
 
 // API configuration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (
+  // 在生产环境中使用相对路径，开发环境使用本地后端
+  import.meta.env.MODE === 'production' ? '' : 'http://localhost:8080'
+);
+
+// Static assets base URL for artifacts (images, audio)
+const ASSETS_BASE_URL = import.meta.env.VITE_ASSETS_BASE_URL || (
+  // 在生产环境中使用相对路径，开发环境使用本地后端
+  import.meta.env.MODE === 'production' ? '' : 'http://localhost:8080'
+);
 
 class ApiClient {
   private client: AxiosInstance;
@@ -135,4 +144,22 @@ export const handleApiError = (error: any): ApiError => {
     // Other error
     return new ApiError(error.message || 'An unexpected error occurred');
   }
+};
+
+// Utility function to resolve static asset URLs
+export const resolveAssetUrl = (url: string): string => {
+  if (!url) return '';
+  
+  // If URL is already absolute, return as is
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  
+  // If URL starts with /artifacts/, prepend the assets base URL
+  if (url.startsWith('/artifacts/')) {
+    return `${ASSETS_BASE_URL}${url}`;
+  }
+  
+  // For other relative URLs, prepend the assets base URL
+  return `${ASSETS_BASE_URL}/${url.replace(/^\//, '')}`;
 };
