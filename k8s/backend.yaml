@@ -16,16 +16,22 @@ data:
       },
       "ai": {
         "base_url": "https://openai.qiniu.com/v1",
-        "api_key": "sk-e44bb568586c50374d8b3f313fca6caab52f334eefa632039cae206d9d11a6fc",
+        "api_key": "sk-xxx",
         "text_model": "deepseek-v3",
         "image_model": "gemini-2.5-flash-image"
       },
       "qiniu": {
-        "access_key": "x4dWfeJJ0HTrGhRtJwpgKUXe7vzlt_zWlMkYTEij",
-        "secret_key": "JFO8CAoGc1BbXCJEYUyxrbibZ4eCBKCBUT7NaWWl",
+        "access_key": "xx",
+        "secret_key": "yy",
         "bucket": "novel2comic",
         "domain": "http://t4o5zbe8f.hd-bkt.clouddn.com"
       },
+      "tencent_tts": {
+          "secret_id": "xx",
+          "secret_key": "yy",
+          "region": "ap-shanghai"
+      },
+      "tts_provider": "tecent",
       "storage": {
         "output_dir": "./outputs"
       }
