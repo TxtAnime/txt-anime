@@ -27,8 +27,7 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
     loadAnimeData, 
     getCurrentScene,
     nextScene,
-    previousScene,
-    goToScene
+    previousScene
   } = useAnime();
   
   const { toggleDialogue, playNarration, startAutoPlay, isDialoguePlaying } = useAudioPlayer();
@@ -432,35 +431,7 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
           
           <div style={{ width: '1px', height: '24px', backgroundColor: '#d1d5db', margin: '0 8px' }}></div>
           
-          {/* Quick Scene Jump */}
-          <button 
-            style={{
-              padding: '8px 12px',
-              color: 'white',
-              backgroundColor: '#3b82f6',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '12px',
-              fontWeight: '500'
-            }}
-            onClick={() => {
-              console.log('Jumping to scene with dialogue');
-              // Find first scene with dialogues
-              const sceneWithDialogue = animeData.scenes.findIndex(scene => 
-                scene.dialogues && scene.dialogues.length > 0
-              );
-              if (sceneWithDialogue !== -1) {
-                console.log('Found scene with dialogue at index:', sceneWithDialogue);
-                goToScene(sceneWithDialogue);
-              } else {
-                alert('没有找到包含对话的场景');
-              }
-            }}
-          >
-            跳转到对话
-          </button>
-          
+
 
           
           {/* Auto-play toggle */}
@@ -566,20 +537,7 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
                 </div>
               )}
               
-              {/* Scene number overlay */}
-              <div style={{
-                position: 'absolute',
-                top: '24px',
-                right: '24px',
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                color: 'white',
-                padding: '8px 12px',
-                borderRadius: '8px',
-                fontSize: '14px',
-                fontWeight: '500'
-              }}>
-                {currentScene + 1}
-              </div>
+
             </div>
 
             {/* Right Panel - Text Content */}

@@ -10,9 +10,11 @@ set -e
 DEPLOYMENT_MODE=${1:-local}
 NAMESPACE="txt-anime"
 REGISTRY="aslan-spock-register.qiniu.io/qmatrix"
+IMAGE_TAG="${IMAGE_TAG:-$(date +%Y%m%d-%H%M%S)}"
 
 echo "🚀 开始部署 txt-anime 项目..."
 echo "部署模式: $DEPLOYMENT_MODE"
+echo "镜像标签: $IMAGE_TAG"
 echo ""
 
 if [ "$DEPLOYMENT_MODE" = "k8s" ]; then
@@ -38,12 +40,15 @@ if [ "$DEPLOYMENT_MODE" = "k8s" ]; then
         exit 1
     fi
     echo "  构建 Docker 镜像..."
-    docker build -f Dockerfile.simple2 -t $REGISTRY/novel2comicd-backend:latest . > /dev/null 2>&1
+    docker build -f Dockerfile.simple2 -t $REGISTRY/novel2comicd-backend:$IMAGE_TAG . > /dev/null 2>&1
     if [ $? -ne 0 ]; then
         echo "❌ 后端镜像构建失败"
         exit 1
     fi
+    # 同时打上 latest 标签
+    docker tag $REGISTRY/novel2comicd-backend:$IMAGE_TAG $REGISTRY/novel2comicd-backend:latest
     echo "  推送镜像到仓库..."
+    docker push $REGISTRY/novel2comicd-backend:$IMAGE_TAG > /dev/null 2>&1
     docker push $REGISTRY/novel2comicd-backend:latest > /dev/null 2>&1
     if [ $? -ne 0 ]; then
         echo "❌ 后端镜像推送失败"
@@ -73,13 +78,16 @@ if [ "$DEPLOYMENT_MODE" = "k8s" ]; then
     # 先确保有 amd64 的 nginx:alpine 镜像
     docker pull --platform linux/amd64 nginx:alpine > /dev/null 2>&1 || true
     # 使用 buildx 构建 amd64 镜像
-    docker buildx build --platform linux/amd64 --pull=false -f Dockerfile.simple -t $REGISTRY/novel2comicd-frontend:latest --load . > /dev/null 2>&1
+    docker buildx build --platform linux/amd64 --pull=false -f Dockerfile.simple -t $REGISTRY/novel2comicd-frontend:$IMAGE_TAG --load . > /dev/null 2>&1
     if [ $? -ne 0 ]; then
         echo "❌ 前端镜像构建失败"
         cd ..
         exit 1
     fi
+    # 同时打上 latest 标签
+    docker tag $REGISTRY/novel2comicd-frontend:$IMAGE_TAG $REGISTRY/novel2comicd-frontend:latest
     echo "  推送镜像到仓库..."
+    docker push $REGISTRY/novel2comicd-frontend:$IMAGE_TAG > /dev/null 2>&1
     docker push $REGISTRY/novel2comicd-frontend:latest > /dev/null 2>&1
     if [ $? -ne 0 ]; then
         echo "❌ 前端镜像推送失败"
@@ -114,9 +122,15 @@ if [ "$DEPLOYMENT_MODE" = "k8s" ]; then
     echo "  部署前端服务..."
     kubectl apply -f k8s/frontend.yaml > /dev/null 2>&1
     
+    # 强制重启部署以拉取新镜像
+    echo "  重启部署以应用新镜像..."
+    kubectl rollout restart deployment/backend -n $NAMESPACE > /dev/null 2>&1
+    kubectl rollout restart deployment/frontend -n $NAMESPACE > /dev/null 2>&1
+    
     # 等待部署完成
     echo "  等待服务就绪..."
-    sleep 10
+    kubectl rollout status deployment/backend -n $NAMESPACE --timeout=120s > /dev/null 2>&1
+    kubectl rollout status deployment/frontend -n $NAMESPACE --timeout=120s > /dev/null 2>&1
     
     # 显示部署状态
     echo ""
