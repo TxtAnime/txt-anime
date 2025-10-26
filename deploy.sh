@@ -202,23 +202,6 @@ deploy_k8s() {
     done
     echo -e "${GREEN}✅ All required tools are available${NC}"
 
-<<<<<<< Updated upstream
-# Build frontend
-echo "Building frontend..."
-cd novel-to-anime-frontend
-docker build --platform linux/amd64 --no-cache -t ${REGISTRY}/${NAMESPACE}/novel-to-anime-frontend:latest .
-docker push ${REGISTRY}/${NAMESPACE}/novel-to-anime-frontend:latest
-cd ..
-
-# Build mock server
-echo "Building mock server..."
-cd mock-server
-docker build --platform linux/amd64 --no-cache -t ${REGISTRY}/${NAMESPACE}/mock-server:latest .
-docker push ${REGISTRY}/${NAMESPACE}/mock-server:latest
-cd ..
-
-echo -e "${GREEN}✅ Docker images built and pushed${NC}"
-=======
     # Build and push Docker images
     echo -e "${YELLOW}🔨 Building Docker images...${NC}"
 
@@ -233,7 +216,6 @@ echo -e "${GREEN}✅ Docker images built and pushed${NC}"
     docker build --platform linux/amd64 --no-cache -t ${REGISTRY}/${NAMESPACE}/novel-to-anime-frontend:latest .
     docker push ${REGISTRY}/${NAMESPACE}/novel-to-anime-frontend:latest
     cd ..
->>>>>>> Stashed changes
 
     echo -e "${GREEN}✅ Docker images built and pushed${NC}"
 
@@ -243,28 +225,15 @@ echo -e "${GREEN}✅ Docker images built and pushed${NC}"
     # Apply namespace (if it doesn't exist)
     kubectl apply -f k8s/namespace.yaml
 
-<<<<<<< Updated upstream
-# Apply deployments and services
-kubectl apply -f k8s/mock-server-deployment.yaml
-kubectl apply -f k8s/frontend-deployment.yaml
-=======
     # Apply ConfigMap
     kubectl apply -f k8s/configmap.yaml
->>>>>>> Stashed changes
 
     # Apply deployments and services
     kubectl apply -f k8s/backend-deployment.yaml
     kubectl apply -f k8s/frontend-deployment.yaml
 
-<<<<<<< Updated upstream
-# Force restart deployments to pull new images
-echo "Restarting deployments to pull new images..."
-kubectl rollout restart deployment/mock-server -n ${NAMESPACE}
-kubectl rollout restart deployment/novel-to-anime-frontend -n ${NAMESPACE}
-=======
     # Apply ingress
     kubectl apply -f k8s/ingress.yaml
->>>>>>> Stashed changes
 
     # Force restart deployments to pull new images
     echo "Restarting deployments to pull new images..."
