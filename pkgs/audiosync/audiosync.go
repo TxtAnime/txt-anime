@@ -23,17 +23,13 @@ type ScriptData struct {
 }
 
 type Scene struct {
-	SceneID            int            `json:"scene_id"`
-	Location           string         `json:"location"`
-	TimeOfDay          string         `json:"time_of_day"`
-	Characters         []string       `json:"characters"`
-	Narration          string         `json:"narration"`
-	ActionDescription  string         `json:"action_description"`
-	Dialogue           []DialogueLine `json:"dialogue"`
-	VisualDescription  string         `json:"visual_description"`
-	EmotionalTone      string         `json:"emotional_tone"`
-	CameraShot         string         `json:"camera_shot"`
-	BackgroundElements []string       `json:"background_elements"`
+	SceneID          int            `json:"scene_id"`
+	Location         string         `json:"location"`
+	TimeOfDay        string         `json:"time_of_day"`
+	Characters       []string       `json:"characters"`
+	SceneDescription string         `json:"scene_description"`
+	Dialogue         []DialogueLine `json:"dialogue"`
+	NarrationVO      string         `json:"narration_vo"`
 }
 
 type DialogueLine struct {
@@ -147,7 +143,7 @@ func Process(scriptData ScriptData, outputDir string, cfg Config) error {
 	totalNarrations := 0
 	for _, scene := range scriptData.Script {
 		totalDialogues += len(scene.Dialogue)
-		if scene.Narration != "" {
+		if scene.NarrationVO != "" {
 			totalNarrations++
 		}
 	}
@@ -165,8 +161,8 @@ func Process(scriptData ScriptData, outputDir string, cfg Config) error {
 	totalItems := totalDialogues + totalNarrations
 
 	for _, scene := range scriptData.Script {
-		// 1. 先生成旁白音频
-		if scene.Narration != "" {
+		// 1. 先生成旁白音频（如果有）
+		if scene.NarrationVO != "" {
 			currentIdx++
 
 			// 获取旁白音色
@@ -177,7 +173,7 @@ func Process(scriptData ScriptData, outputDir string, cfg Config) error {
 			}
 
 			// 显示进度
-			narrationPreview := scene.Narration
+			narrationPreview := scene.NarrationVO
 			if len(narrationPreview) > 40 {
 				narrationPreview = narrationPreview[:40] + "..."
 			}
@@ -185,7 +181,7 @@ func Process(scriptData ScriptData, outputDir string, cfg Config) error {
 				currentIdx, totalItems, scene.SceneID, narrationPreview)
 
 			// 生成音频
-			audioData, err := generateAudio(scene.Narration, voiceType, cfg)
+			audioData, err := generateAudio(scene.NarrationVO, voiceType, cfg)
 			if err != nil {
 				fmt.Printf("  ❌ 生成失败: %v\n", err)
 			} else {
@@ -417,9 +413,9 @@ func buildVoiceMatchPrompt(scriptData ScriptData, voices []VoiceInfo) string {
 		sampleCount++
 		sb.WriteString(fmt.Sprintf("场景%d (%s):\n", scene.SceneID, scene.Location))
 
-		// 显示旁白
-		if scene.Narration != "" {
-			sb.WriteString(fmt.Sprintf("- [旁白]: \"%s\"\n", truncateText(scene.Narration, 60)))
+		// 显示旁白（画外音）
+		if scene.NarrationVO != "" {
+			sb.WriteString(fmt.Sprintf("- [旁白]: \"%s\"\n", truncateText(scene.NarrationVO, 60)))
 		}
 
 		// 显示对话

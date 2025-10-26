@@ -70,13 +70,18 @@ while [ $POLL_COUNT -lt $MAX_POLLS ]; do
     # 获取任务状态
     STATUS_RESPONSE=$(curl -s "${API_BASE}/v1/tasks/${TASK_ID}")
     STATUS=$(echo "$STATUS_RESPONSE" | jq -r '.status')
+    STATUS_DESC=$(echo "$STATUS_RESPONSE" | jq -r '.statusDesc // ""')
     
     if [ "$STATUS" = "done" ]; then
         echo "✅ 任务完成！(轮询 $POLL_COUNT 次，耗时 $((POLL_COUNT * POLL_INTERVAL)) 秒)"
         echo ""
         break
     elif [ "$STATUS" = "doing" ]; then
-        printf "\r   [%3d/%3d] 任务处理中... (已等待 %d 秒)" $POLL_COUNT $MAX_POLLS $((POLL_COUNT * POLL_INTERVAL))
+        if [ -n "$STATUS_DESC" ] && [ "$STATUS_DESC" != "" ]; then
+            printf "\r   [%3d/%3d] %s... (已等待 %d 秒)" $POLL_COUNT $MAX_POLLS "$STATUS_DESC" $((POLL_COUNT * POLL_INTERVAL))
+        else
+            printf "\r   [%3d/%3d] 任务处理中... (已等待 %d 秒)" $POLL_COUNT $MAX_POLLS $((POLL_COUNT * POLL_INTERVAL))
+        fi
         sleep $POLL_INTERVAL
     else
         echo ""
