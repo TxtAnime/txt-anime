@@ -48,7 +48,7 @@ func main() {
 	log.Println("✅ 后台任务处理器已启动")
 
 	// 创建 HTTP 处理器
-	handler := NewHandler(db)
+	handler := NewHandler(db, config.Storage.OutputDir)
 
 	// CORS 中间件
 	corsHandler := func(next http.HandlerFunc) http.HandlerFunc {
@@ -85,10 +85,15 @@ func main() {
 		} else if len(r.URL.Path) > len("/v1/tasks/") {
 			// GET /v1/tasks/:id - 获取任务
 			// GET /v1/tasks/:id/artifacts - 获取任务产物
+			// DELETE /v1/tasks/:id - 删除任务
 			if r.URL.Path[len(r.URL.Path)-10:] == "/artifacts" {
 				handler.GetArtifacts(w, r)
-			} else {
+			} else if r.Method == http.MethodDelete {
+				handler.DeleteTask(w, r)
+			} else if r.Method == http.MethodGet {
 				handler.GetTask(w, r)
+			} else {
+				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			}
 		} else {
 			http.Error(w, "Not found", http.StatusNotFound)
@@ -111,6 +116,7 @@ func main() {
 	log.Println("  POST   /v1/tasks/              - 创建任务")
 	log.Println("  GET    /v1/tasks/              - 获取任务列表")
 	log.Println("  GET    /v1/tasks/:id           - 获取任务")
+	log.Println("  DELETE /v1/tasks/:id           - 删除任务")
 	log.Println("  GET    /v1/tasks/:id/artifacts - 获取任务产物")
 	log.Println("  GET    /artifacts/*            - 下载产物文件")
 	log.Println("  GET    /health                 - 健康检查")

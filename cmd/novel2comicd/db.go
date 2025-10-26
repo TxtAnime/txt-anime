@@ -150,3 +150,20 @@ func (db *DB) UpdateTaskStatusDesc(taskID, statusDesc string) error {
 	}
 	return nil
 }
+
+// DeleteTask 删除任务
+func (db *DB) DeleteTask(taskID string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	result, err := db.collection.DeleteOne(ctx, bson.M{"_id": taskID})
+	if err != nil {
+		return fmt.Errorf("删除任务失败: %w", err)
+	}
+
+	if result.DeletedCount == 0 {
+		return fmt.Errorf("任务不存在")
+	}
+
+	return nil
+}
