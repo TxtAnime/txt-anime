@@ -55,6 +55,10 @@ github.com/sashabaranov/go-openai v1.35.7/go.mod h1:lj5b/K+zjTSFxVLijLSTDZuP7adO
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.1.27 h1:FG3AiNSNW5tG+mtTSE+dBc5ZhHwlYUW0Z6oSkfAWV0A=
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.1.27/go.mod h1:r5r4xbfxSaeR04b166HGsBa/R4U3SueirEUpXGuw+Q0=
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/tts v1.1.27 h1:I4vwcrHem8fevhP+9OfUFuFlvXuT9MhaiGXre+855yo=
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/tts v1.1.27/go.mod h1:PIfyJVYbgvXhC+hDL8xYFO7yH1qvc5B3eQA9KSbI2ss=
 github.com/xdg-go/pbkdf2 v1.0.0 h1:Su7DPu48wXMwC3bs7MCNG+z4FhcyEuz5dlvchbq0B0c=
 github.com/xdg-go/pbkdf2 v1.0.0/go.mod h1:jrpuAogTd400dnrH08LKmI/xc1MbPOebTwRqcT5RDeI=
 github.com/xdg-go/scram v1.1.2 h1:FHX5I5B4i4hKRVRBCFRxq1iQRej7WO3hhBuJf+UUySY=

@@ -21,6 +21,12 @@
 	},
 	"storage": {
 	  "output_dir": "./outputs"
+	},
+	"tts_provider": "qiniu",
+	"tencent_tts": {
+	  "secret_id": "YOUR_TENCENT_SECRET_ID",
+	  "secret_key": "YOUR_TENCENT_SECRET_KEY",
+	  "region": "ap-guangzhou"
 	}
   }
   
