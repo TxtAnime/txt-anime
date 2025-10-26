@@ -77,7 +77,6 @@ func Process(novelText string, cfg Config) (*Response, error) {
 				Content: prompt,
 			},
 		},
-		// Temperature: 0.7, // 某些模型（如 gemini）不支持自定义 temperature，使用默认值
 	}
 
 	resp, err := client.CreateChatCompletion(context.Background(), req)

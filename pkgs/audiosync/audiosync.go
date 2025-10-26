@@ -362,7 +362,6 @@ func matchVoicesForCharacters(scriptData ScriptData, voices []VoiceInfo, cfg Con
 					Content: prompt,
 				},
 			},
-			Temperature: 0.3,
 		},
 	)
 	if err != nil {
