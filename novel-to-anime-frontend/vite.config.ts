@@ -14,4 +14,14 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    proxy: {
+      // 预览模式也需要代理配置
+      '/artifacts': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
 })
