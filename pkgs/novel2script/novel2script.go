@@ -77,7 +77,6 @@ func Process(novelText string, cfg Config) (*Response, error) {
 				Content: prompt,
 			},
 		},
-		Temperature: 0.7,
 	}
 
 	resp, err := client.CreateChatCompletion(context.Background(), req)
