@@ -6,6 +6,8 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/qiniu/go-sdk/v7 v7.25.4
 	github.com/sashabaranov/go-openai v1.35.7
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.1.27
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/tts v1.1.27
 	go.mongodb.org/mongo-driver v1.17.4
 )
 

@@ -30,6 +30,7 @@ type Scene struct {
 type DialogueLine struct {
 	Character string `json:"character"`
 	Line      string `json:"line"`
+	Emotion   string `json:"emotion,omitempty"` // 情感：neutral, sad, happy, angry, fear, etc.
 }
 
 // Response 响应结构
@@ -112,7 +113,10 @@ func buildPrompt(novelText string) string {
    - time_of_day: 场景发生的时间 (例如: "白天", "夜晚", "黄昏", "清晨")
    - characters_present: 此场景出现的角色名称列表
    - scene_description: 对场景的**视觉描述**。这包括环境、氛围、以及角色的**关键动作和表情**。这是**改编的核心**,需要将小说的描述性文字(包括心理活动)转换成**可被看见**的画面。此字段将用于后续图像生成,必须具体、生动且富有画面感。
-   - dialogue: 对话数组,每个对话包含character(角色名)和line(台词)
+   - dialogue: 对话数组,每个对话包含character(角色名)、line(台词)和emotion(情感,可选)
+     * emotion字段用于控制语音合成时的情感表达,可选值包括: neutral(中性)、sad(悲伤)、happy(高兴)、angry(生气)、fear(恐惧)、sajiao(撒娇)、amaze(震惊)、disgusted(厌恶)、peaceful(平静)、news(新闻)、story(故事)、radio(广播)、poetry(诗歌)、call(客服)等
+     * 只在对话需要情感表达时添加emotion字段,普通对话可以省略(默认为neutral)
+     * 根据角色的情绪和场景氛围合理选择emotion,常用情感: happy(开心)、sad(悲伤)、angry(生气)、fear(害怕)、amaze(惊讶)
    - narration_vo: (可选) 仅包含那些需要作为**画外音**被朗读出来的旁白或内心独白。如果此场景没有旁白,则为空字符串 ""。
 
 2. 提取并设计所有主要角色的视觉描述:
@@ -128,7 +132,8 @@ func buildPrompt(novelText string) string {
 - 根据故事情节改编成合适数量的关键场景,不要受限于固定数量。
 - 只设计主要角色(出场较多或重要的角色)。
 - characters的每个值必须是单个字符串,包含完整的视觉描述。
-- 示例: {"小红帽": "8岁女孩，天真无邪，金色及肩卷发，蓝色大眼睛，穿着一件标志性的红色天鹅绒兜帽斗篷，内搭棕色连衣裙和白色围裙，提着一个柳条篮子。"}
+- dialogue的示例: {"character": "小红帽", "line": "外婆，你的耳朵怎么这么大？", "emotion": "fear"}
+- 角色视觉描述示例: {"小红帽": "8岁女孩，天真无邪，金色及肩卷发，蓝色大眼睛，穿着一件标志性的红色天鹅绒兜帽斗篷，内搭棕色连衣裙和白色围裙，提着一个柳条篮子。"}
 
 小说内容:
 %s

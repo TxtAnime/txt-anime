@@ -8,11 +8,13 @@ import (
 
 // Config 应用配置
 type Config struct {
-	Server  ServerConfig  `json:"server"`
-	MongoDB MongoDBConfig `json:"mongodb"`
-	AI      AIConfig      `json:"ai"`
-	Qiniu   QiniuConfig   `json:"qiniu"`
-	Storage StorageConfig `json:"storage"`
+	Server      ServerConfig     `json:"server"`
+	MongoDB     MongoDBConfig    `json:"mongodb"`
+	AI          AIConfig         `json:"ai"`
+	Qiniu       QiniuConfig      `json:"qiniu"`
+	Storage     StorageConfig    `json:"storage"`
+	TTSProvider string           `json:"tts_provider"` // "qiniu" 或 "tencent"
+	TencentTTS  TencentTTSConfig `json:"tencent_tts"`
 }
 
 // ServerConfig 服务器配置
@@ -46,6 +48,13 @@ type QiniuConfig struct {
 // StorageConfig 存储配置
 type StorageConfig struct {
 	OutputDir string `json:"output_dir"`
+}
+
+// TencentTTSConfig 腾讯云TTS配置
+type TencentTTSConfig struct {
+	SecretID  string `json:"secret_id"`
+	SecretKey string `json:"secret_key"`
+	Region    string `json:"region"`
 }
 
 // LoadConfig 加载配置文件

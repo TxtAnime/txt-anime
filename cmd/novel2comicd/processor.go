@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/TxtAnime/txt-anime/pkgs/audiosync"
+	"github.com/TxtAnime/txt-anime/pkgs/audiosynctc"
 	"github.com/TxtAnime/txt-anime/pkgs/novel2script"
 	"github.com/TxtAnime/txt-anime/pkgs/storyboard"
 )
@@ -172,9 +173,29 @@ func (p *TaskProcessor) generateImages(scriptData *novel2script.Response, images
 
 // generateAudios 生成音频
 func (p *TaskProcessor) generateAudios(scriptData *novel2script.Response, audiosDir string) error {
+	// 根据配置选择TTS提供商
+	ttsProvider := p.config.TTSProvider
+	if ttsProvider == "" {
+		ttsProvider = "qiniu" // 默认使用七牛云
+	}
+
+	switch ttsProvider {
+	case "tencent":
+		// 使用腾讯云TTS
+		return p.generateAudiosTencent(scriptData, audiosDir)
+	case "qiniu":
+		// 使用七牛云TTS
+		return p.generateAudiosQiniu(scriptData, audiosDir)
+	default:
+		return fmt.Errorf("不支持的TTS提供商: %s", ttsProvider)
+	}
+}
+
+// generateAudiosQiniu 使用七牛云生成音频
+func (p *TaskProcessor) generateAudiosQiniu(scriptData *novel2script.Response, audiosDir string) error {
 	// 转换数据结构为 audiosync 需要的格式
 	asScriptData := audiosync.ScriptData{
-		Script:     convertScenes(scriptData.Script),
+		Script:     convertScenesForQiniu(scriptData.Script),
 		Characters: scriptData.Characters,
 	}
 
@@ -186,6 +207,29 @@ func (p *TaskProcessor) generateAudios(scriptData *novel2script.Response, audios
 
 	// 调用 audiosync 处理
 	return audiosync.Process(asScriptData, audiosDir, cfg)
+}
+
+// generateAudiosTencent 使用腾讯云生成音频
+func (p *TaskProcessor) generateAudiosTencent(scriptData *novel2script.Response, audiosDir string) error {
+	// 转换数据结构为 audiosynctc 需要的格式
+	tcScriptData := audiosynctc.ScriptData{
+		Script:     convertScenesForTencent(scriptData.Script),
+		Characters: scriptData.Characters,
+	}
+
+	cfg := audiosynctc.Config{
+		SecretID:  p.config.TencentTTS.SecretID,
+		SecretKey: p.config.TencentTTS.SecretKey,
+		Region:    p.config.TencentTTS.Region,
+		LLMConfig: audiosynctc.LLMConfig{
+			BaseURL: p.config.AI.BaseURL,
+			APIKey:  p.config.AI.APIKey,
+			Model:   p.config.AI.TextModel,
+		},
+	}
+
+	// 调用 audiosynctc 处理
+	return audiosynctc.Process(tcScriptData, audiosDir, cfg)
 }
 
 // buildScenes 构建 scenes 数据（使用本地文件服务器 URL）
@@ -252,8 +296,8 @@ func convertToStoryboardScene(scene novel2script.Scene, characters map[string]st
 	}
 }
 
-// convertScenes 转换场景格式为 audiosync 需要的格式
-func convertScenes(scenes []novel2script.Scene) []audiosync.Scene {
+// convertScenesForQiniu 转换场景格式为 audiosync 需要的格式（七牛云）
+func convertScenesForQiniu(scenes []novel2script.Scene) []audiosync.Scene {
 	result := make([]audiosync.Scene, len(scenes))
 	for i, s := range scenes {
 		var dialogues []audiosync.DialogueLine
@@ -261,10 +305,37 @@ func convertScenes(scenes []novel2script.Scene) []audiosync.Scene {
 			dialogues = append(dialogues, audiosync.DialogueLine{
 				Character: d.Character,
 				Line:      d.Line,
+				Emotion:   d.Emotion, // 保留emotion字段（七牛云会忽略）
 			})
 		}
 
 		result[i] = audiosync.Scene{
+			SceneID:          s.SceneID,
+			Location:         s.Location,
+			TimeOfDay:        s.TimeOfDay,
+			Characters:       s.CharactersPresent,
+			SceneDescription: s.SceneDescription,
+			Dialogue:         dialogues,
+			NarrationVO:      s.NarrationVO,
+		}
+	}
+	return result
+}
+
+// convertScenesForTencent 转换场景格式为 audiosynctc 需要的格式（腾讯云）
+func convertScenesForTencent(scenes []novel2script.Scene) []audiosynctc.Scene {
+	result := make([]audiosynctc.Scene, len(scenes))
+	for i, s := range scenes {
+		var dialogues []audiosynctc.DialogueLine
+		for _, d := range s.Dialogue {
+			dialogues = append(dialogues, audiosynctc.DialogueLine{
+				Character: d.Character,
+				Line:      d.Line,
+				Emotion:   d.Emotion, // 保留emotion字段用于腾讯云TTS
+			})
+		}
+
+		result[i] = audiosynctc.Scene{
 			SceneID:          s.SceneID,
 			Location:         s.Location,
 			TimeOfDay:        s.TimeOfDay,
