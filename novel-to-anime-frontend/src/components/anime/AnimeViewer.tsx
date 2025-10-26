@@ -17,6 +17,7 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
     // Load auto-play preference from localStorage
     return storage.getItem('autoPlayEnabled', true);
   });
+  const [hasInitialized, setHasInitialized] = useState(false);
   
   const { 
     animeData, 
@@ -30,17 +31,15 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
     goToScene
   } = useAnime();
   
-<<<<<<< Updated upstream
-  const { toggleDialogue, isDialoguePlaying } = useAudioPlayer();
-=======
-  const { toggleDialogue, playNarration, startAutoPlay, isDialoguePlaying, playerState } = useAudioPlayer();
->>>>>>> Stashed changes
+  const { toggleDialogue, playNarration, startAutoPlay, isDialoguePlaying } = useAudioPlayer();
   const { currentTask } = useTasks();
 
   // Load anime data when component mounts or taskId changes
   useEffect(() => {
     if (taskId && currentTask?.status === 'done') {
-      loadAnimeData(taskId);
+      loadAnimeData(taskId).then(() => {
+        setHasInitialized(true);
+      });
     }
   }, [taskId, currentTask?.status, loadAnimeData]);
 
@@ -51,7 +50,7 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
 
   // Auto-play when scene changes or project opens
   useEffect(() => {
-    if (!autoPlayEnabled) return;
+    if (!autoPlayEnabled || !animeData || !hasInitialized) return;
     
     const scene = getCurrentScene();
     console.log('Scene changed:', { 
@@ -69,16 +68,23 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
       
       if (hasNarration || hasDialogues) {
         console.log('Starting auto-play for scene:', currentScene);
-        setTimeout(() => {
+        
+        // Use a longer delay and clear any existing timeouts to prevent race conditions
+        const timeoutId = setTimeout(() => {
           startAutoPlay(
             scene.dialogues || [], 
             currentScene, 
             hasNarration ? { url: scene.narrationVoiceURL! } : undefined
           );
-        }, 500); // Small delay to ensure UI is ready
+        }, 1000); // Longer delay to ensure everything is ready
+        
+        // Cleanup function to clear timeout if effect runs again
+        return () => {
+          clearTimeout(timeoutId);
+        };
       }
     }
-  }, [currentScene, getCurrentScene, animeData, startAutoPlay, autoPlayEnabled]);
+  }, [currentScene, autoPlayEnabled, animeData?.scenes?.length, hasInitialized]); // More specific dependencies
 
   const handleDialogueClick = async (dialogue: Dialogue, dialogueIndex: number) => {
     try {
@@ -89,12 +95,6 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
     }
   };
 
-<<<<<<< Updated upstream
-  const handleNarrationClick = async (narration: string) => {
-    // For now, narration doesn't have audio URL in the API
-    // This could be extended in the future
-    console.log('Narration clicked:', narration);
-=======
   const handleNarrationClick = async () => {
     const scene = getCurrentScene();
     if (scene?.narrationVoiceURL) {
@@ -105,7 +105,6 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
         console.error('Failed to play narration:', error);
       }
     }
->>>>>>> Stashed changes
   };
 
   const getCurrentPlayingDialogue = () => {
@@ -610,7 +609,7 @@ export const AnimeViewer = ({ taskId }: AnimeViewerProps) => {
                         textAlign: 'justify',
                         letterSpacing: '0.05em'
                       }}
-                      onClick={() => handleNarrationClick(scene.narration)}
+                      onClick={() => handleNarrationClick()}
                       title="点击播放旁白"
                       onMouseEnter={(e) => {
                         e.currentTarget.style.backgroundColor = '#f9fafb';

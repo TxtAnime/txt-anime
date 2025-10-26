@@ -125,8 +125,9 @@ export const TaskCard = ({ task, onSelect, isSelected = false }: TaskCardProps) 
         {task.status === 'doing' && (
           <div style={{ marginTop: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-              <span style={{ fontSize: '12px', color: '#4b5563' }}>Generation in progress</span>
-              <span style={{ fontSize: '12px', color: '#d97706', fontWeight: '500' }}>~60%</span>
+              <span style={{ fontSize: '12px', color: '#4b5563' }}>
+                {task.statusDesc || 'Generation in progress'}
+              </span>
             </div>
             <div style={{ width: '100%', backgroundColor: '#e5e7eb', borderRadius: '9999px', height: '6px' }}>
               <div style={{ 
@@ -151,7 +152,9 @@ export const TaskCard = ({ task, onSelect, isSelected = false }: TaskCardProps) 
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div style={{ width: '8px', height: '8px', backgroundColor: '#34d399', borderRadius: '50%' }}></div>
-              <span style={{ fontSize: '12px', color: '#065f46', fontWeight: '500' }}>Ready to view</span>
+              <span style={{ fontSize: '12px', color: '#065f46', fontWeight: '500' }}>
+                {task.statusDesc || 'Ready to view'}
+              </span>
             </div>
             <svg style={{ width: '16px', height: '16px', color: '#9ca3af' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

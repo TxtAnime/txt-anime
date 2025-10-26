@@ -45,11 +45,19 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
         ...state,
         tasks: state.tasks.map(task =>
           task.id === action.payload.id
-            ? { ...task, status: action.payload.status }
+            ? { 
+                ...task, 
+                status: action.payload.status,
+                ...(action.payload.statusDesc && { statusDesc: action.payload.statusDesc })
+              }
             : task
         ),
         currentTask: state.currentTask?.id === action.payload.id
-          ? { ...state.currentTask, status: action.payload.status }
+          ? { 
+              ...state.currentTask, 
+              status: action.payload.status,
+              ...(action.payload.statusDesc && { statusDesc: action.payload.statusDesc })
+            }
           : state.currentTask,
       };
 
