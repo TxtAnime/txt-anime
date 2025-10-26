@@ -2,9 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -13,12 +16,16 @@ import (
 
 // Handler HTTP 处理器
 type Handler struct {
-	db *DB
+	db        *DB
+	outputDir string
 }
 
 // NewHandler 创建处理器
-func NewHandler(db *DB) *Handler {
-	return &Handler{db: db}
+func NewHandler(db *DB, outputDir string) *Handler {
+	return &Handler{
+		db:        db,
+		outputDir: outputDir,
+	}
 }
 
 // CreateTask 创建任务 POST /v1/tasks/
@@ -185,6 +192,59 @@ func (h *Handler) GetTasks(w http.ResponseWriter, r *http.Request) {
 	resp := GetTasksResponse{Tasks: taskList}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
+}
+
+// DeleteTask 删除任务 DELETE /v1/tasks/:id
+func (h *Handler) DeleteTask(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// 提取任务 ID
+	taskID := extractTaskID(r.URL.Path, "/v1/tasks/")
+	if taskID == "" {
+		http.Error(w, "Invalid task ID", http.StatusBadRequest)
+		return
+	}
+
+	// 先查询任务是否存在
+	task, err := h.db.GetTask(taskID)
+	if err != nil {
+		log.Printf("查询任务失败: %v", err)
+		http.Error(w, "Failed to get task", http.StatusInternalServerError)
+		return
+	}
+
+	if task == nil {
+		http.Error(w, "Task not found", http.StatusNotFound)
+		return
+	}
+
+	// 删除 artifacts 文件
+	taskDir := filepath.Join(h.outputDir, taskID)
+	if err := os.RemoveAll(taskDir); err != nil {
+		log.Printf("⚠️  删除任务目录失败: %v (taskID=%s, path=%s)", err, taskID, taskDir)
+		// 继续删除数据库记录，即使文件删除失败
+	} else {
+		log.Printf("✅ 已删除任务目录: %s", taskDir)
+	}
+
+	// 删除数据库记录
+	if err := h.db.DeleteTask(taskID); err != nil {
+		log.Printf("删除任务记录失败: %v", err)
+		http.Error(w, "Failed to delete task", http.StatusInternalServerError)
+		return
+	}
+
+	// 返回成功响应
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": fmt.Sprintf("Task %s deleted successfully", taskID),
+	})
+
+	log.Printf("✅ 任务删除成功: %s (%s)", taskID, task.Name)
 }
 
 // extractTaskID 从 URL 路径提取任务 ID
